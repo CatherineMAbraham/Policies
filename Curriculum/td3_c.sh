@@ -21,9 +21,9 @@ MODEL=${MODEL_PATH//\'/}
 if [[ "$MODEL" == /* ]]; then
     FULL_MODEL_PATH=/users/cop21cma/Policies2/TD3_Alg"$MODEL"
 else
-    FULL_MODEL_PATH=$MODEL
+    FULL_MODEL_PATH=/"$MODEL"
 fi
 echo "Full model path: $FULL_MODEL_PATH"
 echo "Seed: $SEED"
 # Run the script
-srun --export=ALL python td3_curriculum.py --threshold_pos 0.001 --threshold_ori 3 --action_type euler --maxforce 4 --softtissue spring --num_springs 3  --youngs_modulus 1e7 --model "$FULL_MODEL_PATH" --contact_type 0 --log 1 --seed $SEED
+srun --export=ALL python td3_curriculum.py --threshold_pos 0.001 --threshold_ori 2 --action_type euler --maxforce 4 --softtissue spring --num_springs 3  --youngs_modulus 1e7 --model "$FULL_MODEL_PATH" --contact_type 0 --log 1 --seed $SEED
