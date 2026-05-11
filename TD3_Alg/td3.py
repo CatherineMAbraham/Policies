@@ -14,6 +14,22 @@ import log_callback
 from success_callback import StopTrainingOnSuccessRate
 #repo_path = "/home/catherine/FractureGym/fracturesurgeryenv"
 repo_paths = ["/users/cop21cma/FracSoftGym/fracturesurgeryenv", "/home/catherine/FractureGym/fracturesurgeryenv",'/home/catherine/FractureSoftGym/fracturesurgeryenv/']
+
+
+def int_or_none(value: str):
+    """argparse type: parse an int or the literal 'None'."""
+    if value is None:
+        return None
+    if value.lower() == "none":
+        return None
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            "youngs_modulus must be an integer or 'None'"
+        ) from exc
+
+
 def get_git_commit_hash(repo_path):
     try:
         repo = Repo(repo_path, search_parent_directories=True)
@@ -53,7 +69,7 @@ def train(threshold_pos=0.001,
           num_springs=3,
           contact_type="None",
           ran='1',
-          youngs_modulus=1e6,
+          youngs_modulus=1000000,
           log=True,
           seed=0):
     render_mode = render_mode
@@ -77,7 +93,7 @@ def train(threshold_pos=0.001,
     softtissue = softtissue
     num_springs = num_springs
     contact_type = contact_type
-    youngs_modulus_name = "{:.1E}".format(youngs_modulus)
+    youngs_modulus_name = "None" if youngs_modulus is None else "{:.1E}".format(youngs_modulus)
     #print(youngs_modulus)
     #print(contact_type)
     name = f'{softtissue}_{num_springs}_{youngs_modulus_name}_{seed}_{train_date}'
@@ -182,7 +198,7 @@ if __name__ == "__main__":
     parser.add_argument('--softtissue', type=str, default="spring", help='Soft Tissue Type.')
     parser.add_argument('--num_springs', type=int, default=3, help='Number of springs for the soft tissue.')
     parser.add_argument('--contact_type', type=int, default=0, help='Type of contact for the environment.')
-    parser.add_argument('--youngs_modulus', type=float, default=1e7, help='Young\'s modulus for the soft tissue.')
+    parser.add_argument('--youngs_modulus', type=int_or_none, default=1e7, help='Young\'s modulus for the soft tissue. Use an integer or None')
     parser.add_argument('--ran', type=str, default="1", help='Random seed for the run.')
     parser.add_argument('--log', type=int, default=0, help='Whether to log the training run to W&B.')
     parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducibility.')
