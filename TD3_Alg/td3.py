@@ -66,7 +66,8 @@ def get_youngs_modulus():
     print(f"Selected Young's Modulus for evaluation: {youngs_modulus}")
     return youngs_modulus
 def get_width():
-    width = np.random.uniform(0.01,0.1,0.001)
+    width_options = np.arange(0.01, 0.1, 0.001)
+    width = np.random.choice(width_options)
     print(f"Selected width for evaluation: {width}")
     return width
 
