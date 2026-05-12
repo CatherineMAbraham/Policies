@@ -173,7 +173,7 @@ def train(threshold_pos=0.001,
             'softtissue':softtissue,
             'test': False,
             'youngs_modulus_type': 'None',
-            'width': 'eval_mode',
+            'width': 'None',
             'render_mode': None}
     eval_env=make_vec_env('gym_fracture:softsurg-v0', env_kwargs=eval_env_kwargs,vec_env_cls=SubprocVecEnv)
     
@@ -185,8 +185,8 @@ def train(threshold_pos=0.001,
                                                     min_evals=1, verbose=1, 
                                                     model_name = model_name,
                                                     model_save_path=f'./best_models/{ran}')
-    eval_callback = EvalCallback(eval_env,  eval_freq=500,
-                                deterministic=True, n_eval_episodes=5,
+    eval_callback = EvalCallback(eval_env,  eval_freq=10000,
+                                deterministic=True, n_eval_episodes=50,
                                 callback_after_eval=success_callback)
     if log == 1:
         callback = [eval_callback, log_callback1]
