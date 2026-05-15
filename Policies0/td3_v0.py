@@ -68,9 +68,10 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     threshold_pos = threshold_pos
     threshold_ori = np.deg2rad(threshold_ori)
     
-    model_name = f'model-{train_date}-{action_type}-{np.rad2deg(threshold_pos)}-{seed}'
+    model_name = f'{train_date}-{action_type}-{threshold_pos}-{seed}'
+    tag = action_type
     if log == 1:
-        wandb.init(project="Chp1-Test", name = (f'{model_name}'),notes= (f"Git Commit: {commit}"),tags="pos_only",sync_tensorboard=True, save_code=True)  # Initialize W&B
+        wandb.init(project="Chp1-Test", name = (f'{model_name}'),notes= (f"Git Commit: {commit}"),tags=[tag],sync_tensorboard=True, save_code=True)  # Initialize W&B
     
     env_kwargs = {
         'reward_type': 'sparse',
