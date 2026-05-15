@@ -48,7 +48,7 @@ def linear_schedule(initial_value: float) -> Callable[[float], float]:
         return func
 
 
-def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_only',seed=42):
+def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_only',seed=42,ran="1"):
     commit = get_git_commit_hash(repo_path)
     x = datetime.datetime.now()
     train_date = x.strftime('%m%d%H%M')
@@ -91,7 +91,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                 policy_kwargs=policy_kwargs,
                 gradient_steps=-1,
                 seed=seed, action_noise=action_noise,
-                tensorboard_log='./logs')
+                tensorboard_log='./logs/{ran}')
 
     
     # Separate evaluation env
@@ -118,6 +118,7 @@ if __name__ == "__main__":
     parser.add_argument('--threshold_pos', type=float, default=0.005, help='Position threshold for the environment.')
     parser.add_argument('--threshold_ori', type=float, default=0.05, help='Orientation threshold for the environment.')
     parser.add_argument('--action_type', type=str, default='fouractions', help='Type of action to use in the environment.')
+    parser.add_argument('--ran', type=str, default="1", help='Random seed for the run.')
     parser.add_argument('--seed', type=int, default='42', help='Seed for algorithm')
     args = parser.parse_args()
-    train(threshold_pos=args.threshold_pos, threshold_ori=args.threshold_ori, action_type=args.action_type, seed = args.seed)
+    train(threshold_pos=args.threshold_pos, threshold_ori=args.threshold_ori, action_type=args.action_type, seed = args.seed, ran=args.ran)

@@ -20,4 +20,4 @@ IFS=',' read -r THRESH_POS THRESH_ORI ACTION_TYPE<<< "$PARAM_LINE"
 
 # Run the script
 #srun --export=ALL 
-python td3.py --threshold_pos $THRESH_POS --threshold_ori $THRESH_ORI --action_type $ACTION_TYPE --seed 1
+python td3.py --threshold_pos $THRESH_POS --threshold_ori $THRESH_ORI --action_type $ACTION_TYPE --seed 1 --ran $TASK_ID
