@@ -1,14 +1,14 @@
 #!/bin/bash
 
-> params2.csv
+> params_pos.csv
 
 # First three pairs with both fouractions and euler
-pos_ori_pairs_both=("0.0005 0.01" "0.0005 0.05" "0.0005 0.1")
+pos_ori_pairs_both=("0.0005 0.0" "0.00025 0.0" "0.000125 0" "0.00006 0" "0.00001 0" "0 0")
 for pair in "${pos_ori_pairs_both[@]}"; do
   pos=$(echo $pair | cut -d' ' -f1)
   ori=$(echo $pair | cut -d' ' -f2)
-  for act in fouractions euler; do
-      echo "$pos,$ori,$act" >> params2.csv
+  for act in pos_only; do
+      echo "$pos,$ori,$act" >> params_pos.csv
   done
 done
 
@@ -17,6 +17,6 @@ done
 # for pair in "${pos_ori_pairs_euler[@]}"; do
 #   pos=$(echo $pair | cut -d' ' -f1)
 #   ori=$(echo $pair | cut -d' ' -f2)
-#   echo "$pos,$ori,euler" >> params2.csv
+#   echo "$pos,$ori,euler" >> params_pos.csv
 # done
 

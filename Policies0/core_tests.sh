@@ -14,7 +14,7 @@ source activate softsurg
 
 # Read the correct line from params_curr_compare.csv
 TASK_ID=${SLURM_ARRAY_TASK_ID:-1}
-PARAM_LINE=$(sed -n "${TASK_ID}p" params2.csv)
+PARAM_LINE=$(sed -n "${TASK_ID}p" params_pos.csv)
 #PARAM_LINE=$(sed -n "$((SLURM_ARRAY_TASK_ID))p" params2.csv)
 IFS=',' read -r THRESH_POS THRESH_ORI ACTION_TYPE<<< "$PARAM_LINE"
 
