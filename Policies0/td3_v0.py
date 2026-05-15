@@ -120,7 +120,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                                                     model_save_path=None)
     eval_callback = EvalCallback(eval_env,  eval_freq=10000, 
                                 deterministic=True, n_eval_episodes=50,callback_after_eval=success_callback,
-                                best_model_save_path=f'./models/{ran}/{model_name}',verbose=1)
+                                verbose=1)
 
     model.learn(3_000_000, callback=eval_callback)
     
