@@ -1,7 +1,10 @@
 #!/bin/bash
 #SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --partition=gpu
+#SBATCH --qos=gpu
+#SBATCH --gres=gpu:1
 #SBATCH --ntasks=1            # 4 agents total
-#SBATCH --cpus-per-task=2      # 4 CPUs per agent
+#SBATCH --cpus-per-task=1      # 4 CPUs per agent
 #SBATCH --mem=8G              # 8GB RAM per agent
 #SBATCH --time=96:00:00
 #SBATCH --array=1-6

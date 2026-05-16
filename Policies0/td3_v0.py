@@ -2,7 +2,7 @@ import gymnasium as gym
 from stable_baselines3 import TD3, HerReplayBuffer
 from stable_baselines3.common.noise import OrnsteinUhlenbeckActionNoise
 from stable_baselines3.common.callbacks import EvalCallback,StopTrainingOnNoModelImprovement
-from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecFrameStack
+from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecFrameStack, VecNormalize
 from stable_baselines3.common.env_util import make_vec_env
 import tensorboard
 #from gym_fracture.envs.fracuresurgery import fracturesurgery_env
@@ -88,7 +88,8 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         
     
     
-    env = gym.make('gym_fracture:anklesurg-v0', **env_kwargs)
+    env = make_vec_env('anklesurg-v0', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
+    env = VecNormalize(env, norm_obs=True, norm_reward=False)
     action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(env.action_space.shape[0]), 
                                               sigma=0.02 * np.ones(env.action_space.shape[0]))
 
@@ -111,11 +112,12 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                 tensorboard_log=f'./logs/{ran}')
 
     
-    eval_env = Monitor(gym.make('gym_fracture:anklesurg-v0', **env_kwargs))
+    eval_env=make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs,vec_env_cls=DummyVecEnv)
+    eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
    
    ## Stop training callback based on success rate, model_save_path None and just setting it to save any best model in eval 
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
-                                                    max_no_improvement_evals=10, 
+                                                    max_no_improvement_evals=5, 
                                                     success_threshold=0.9,  
                                                     min_evals=1, verbose=1, 
                                                     model_name = model_name,
@@ -124,7 +126,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                                 deterministic=True, n_eval_episodes=50,callback_after_eval=success_callback,
                                 verbose=1)
 
-    model.learn(3_000_000, callback=eval_callback)
+    model.learn(10_000_000, callback=eval_callback)
     
     
 
