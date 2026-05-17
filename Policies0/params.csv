@@ -1,8 +1,6 @@
-0.001,1,fouractions
-0.001,1,euler
-0.005,3,fouractions
-0.005,3,euler
-0.008,5,fouractions
-0.008,5,euler
-0.001,5,euler
-0.008,1,euler
+0.00005,0.05,euler
+0.00005,0.05,fouractions
+0.0001,0.1,euler
+0.0001,0.1,fouractions
+0.0002,0.2,euler
+0.0002,0.2,fouractions
