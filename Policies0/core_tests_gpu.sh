@@ -6,8 +6,8 @@
 #SBATCH --ntasks=1            # 4 agents total
 #SBATCH --cpus-per-task=1      # 4 CPUs per agent
 #SBATCH --mem=8G              # 8GB RAM per agent
-#SBATCH --time=96:00:00
-#SBATCH --array=1-6
+#SBATCH --time=10:00:00
+#SBATCH --array=1-18
 #SBATCH --output=out_%A_%a.out
 #SBATCH --error=err_%A_%a.err
 
@@ -19,8 +19,8 @@ source activate softsurg
 TASK_ID=${SLURM_ARRAY_TASK_ID:-1}
 PARAM_LINE=$(sed -n "${TASK_ID}p" params.csv)
 #PARAM_LINE=$(sed -n "$((SLURM_ARRAY_TASK_ID))p" params2.csv)
-IFS=',' read -r THRESH_POS THRESH_ORI ACTION_TYPE<<< "$PARAM_LINE"
+IFS=',' read -r THRESH_POS THRESH_ORI ACTION_TYPE SEED<<< "$PARAM_LINE  "
 
 # Run the script
 #srun --export=ALL 
-python td3_v0.py --threshold_pos $THRESH_POS --threshold_ori $THRESH_ORI --action_type $ACTION_TYPE --seed 1 --ran $TASK_ID
+python td3_v0.py --threshold_pos $THRESH_POS --threshold_ori $THRESH_ORI --action_type $ACTION_TYPE --seed $SEED --ran $TASK_ID
