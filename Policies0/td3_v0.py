@@ -118,7 +118,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
    ## Stop training callback based on success rate, model_save_path None and just setting it to save any best model in eval 
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
                                                     max_no_improvement_evals=5, 
-                                                    success_threshold=0.9,  
+                                                    success_threshold=1,  
                                                     min_evals=1, verbose=1, 
                                                     model_name = model_name,
                                                     model_save_path=None)
