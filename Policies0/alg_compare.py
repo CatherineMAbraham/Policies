@@ -22,7 +22,7 @@ def get_git_commit_hash(repo_path):
         print(f"An error occurred while getting the commit hash: {e}")
         return None
 
-def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_only', seed=42, reward='sparse', model='TD3'):
+def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_only', seed=42, reward='sparse', model='TD3', ran=1):
     commit = get_git_commit_hash(repo_path)
     x = datetime.datetime.now()
     train_date = x.strftime('%m%d%H%M')
@@ -30,8 +30,8 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     threshold_pos = threshold_pos
     threshold_ori = np.deg2rad(threshold_ori)
     model_name = model  # keep the requested model name separate from the instantiated model
-    print(model_name)
-    wandb.init(project="ModelCompare-3", name = (f'{train_date}-{model}-{reward}-{seed}'),notes= (f"Git Commit: {commit}, seed: {seed}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
+    #print(model_name)
+    wandb.init(project="Chp1-Test", name = (f'{train_date}-{model}-{reward}-{seed}'),notes= (f"Git Commit: {commit}, seed: {seed}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     
     env_kwargs = {
         'reward_type': reward,
@@ -55,12 +55,12 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                         replay_buffer_class=HerReplayBuffer,
                         replay_buffer_kwargs=dict(n_sampled_goal=4),
                         seed=seed,
-                        tensorboard_log='./logs')
+                        tensorboard_log=f'./logs/{ran}')
         elif reward.startswith('dense'):
             model = TD3(policy="MultiInputPolicy",
                         env=env, verbose=0,
                         seed=seed,
-                        tensorboard_log='./logs')
+                        tensorboard_log=f'./logs/{ran}')
     elif model_name == 'SAC':
         m='s'
         if reward == 'sparse':
@@ -69,18 +69,18 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                         replay_buffer_class=HerReplayBuffer,
                         replay_buffer_kwargs=dict(n_sampled_goal=4),
                         seed=seed,
-                        tensorboard_log='./logs')
+                        tensorboard_log=f'./logs/{ran}')
         elif reward.startswith('dense'):
             model = SAC(policy="MultiInputPolicy",
                         env=env, verbose=0,
                         seed=seed,
-                        tensorboard_log='./logs')
+                        tensorboard_log=f'./logs/{ran}')
     elif model_name == 'PPO':
         m='p'
         model = PPO(policy="MultiInputPolicy",
                     env=env, verbose=0,
                     seed=seed,
-                    tensorboard_log='./logs')
+                    tensorboard_log=f'./logs/{ran}')
 
 
     
@@ -91,7 +91,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                                 deterministic=True, n_eval_episodes=20)
     
     model.learn(3_000_000, callback=eval_callback)
-    model.save(f'./model-{train_date}-{m}-{reward}-{seed}')
+    #model.save(f'./model-{train_date}-{m}-{reward}-{seed}')
 
             
 
@@ -104,10 +104,12 @@ if __name__ == "__main__":
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility.')
     parser.add_argument('--reward', type=str, default='sparse', help='Reward type to use in training.')
     parser.add_argument('--model', type=str, default='TD3', help='Model type to use for training (TD3, SAC, PPO).')
+    parser.add_argument('--ran', type=int, default=1, help='Random seed for the run, used in logging and model naming.')
     args = parser.parse_args()
     train(threshold_pos=args.threshold_pos,
           threshold_ori=args.threshold_ori,
           action_type=args.action_type,
           seed=args.seed,
           reward=args.reward,
-          model=args.model)
+          model=args.model,
+          ran=args.ran)

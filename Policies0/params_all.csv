@@ -1,0 +1,6 @@
+SAC,dense_2,1
+SAC,sparse,1
+TD3,dense_2,1
+TD3,sparse,1
+PPO,dense_2,1
+PPO,sparse,1
