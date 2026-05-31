@@ -45,7 +45,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         'render_mode':'direct'}
 
     #env = SubprocVecEnv([make_env(threshold_pos, threshold_ori, action_type) for _ in range(2)])
-    env = gym.make('gym_fracture:softsurg-v0', **env_kwargs)
+    env = gym.make('gym_fracture:anklesurg-v0', **env_kwargs)
 
     if model_name == 'TD3':
         m='t'
@@ -85,7 +85,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
 
     
     # Separate evaluation env
-    eval_env = gym.make('gym_fracture:softsurg-v0', **env_kwargs)
+    eval_env = gym.make('gym_fracture:anklesurg-v0', **env_kwargs)
 
     eval_callback = EvalCallback(eval_env,  eval_freq=10000, 
                                 deterministic=True, n_eval_episodes=20)
