@@ -1,6 +1,8 @@
 import gymnasium as gym
 from stable_baselines3 import TD3, SAC, PPO, HerReplayBuffer
 from stable_baselines3.common.callbacks import EvalCallback
+from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
+from stable_baselines3.common.env_util import make_vec_env
 import tensorboard
 import numpy as np
 from typing import Callable
@@ -45,7 +47,9 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         'render_mode':'direct'}
 
     #env = SubprocVecEnv([make_env(threshold_pos, threshold_ori, action_type) for _ in range(2)])
-    env = gym.make('gym_fracture:anklesurg-v0', **env_kwargs)
+    env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
+    env = VecNormalize(env, norm_obs=True, norm_reward=False)
+    #env = gym.make('gym_fracture:anklesurg-v0', **env_kwargs)
 
     if model_name == 'TD3':
         m='t'
@@ -85,7 +89,8 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
 
     
     # Separate evaluation env
-    eval_env = gym.make('gym_fracture:anklesurg-v0', **env_kwargs)
+    eval_env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=DummyVecEnv, seed=seed)
+    eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
 
     eval_callback = EvalCallback(eval_env,  eval_freq=10000, 
                                 deterministic=True, n_eval_episodes=20)
