@@ -118,7 +118,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     eval_callback = EvalCallback(eval_env,  eval_freq=10000, 
                                 deterministic=True, n_eval_episodes=20, callback_after_eval=success_callback)
 
-    model.learn(200_000, callback=eval_callback)
+    model.learn(500_000, callback=eval_callback)
     #model_name = f'model-{train_date}-{action_type}-{threshold_pos}-{seed}'
     #save model name in log file
     # with open('./logs/model_log.txt', 'w') as f:
