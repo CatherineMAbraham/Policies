@@ -3,6 +3,7 @@ from stable_baselines3 import TD3, SAC, PPO, HerReplayBuffer
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from stable_baselines3.common.env_util import make_vec_env
+from success_callback import StopTrainingOnSuccessRate
 import tensorboard
 import numpy as np
 from typing import Callable
@@ -90,10 +91,12 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     
     # Separate evaluation env
     eval_env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=DummyVecEnv, seed=seed)
+    success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, max_no_improvement_evals=5,
+                                                                success_threshold=1)
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
 
     eval_callback = EvalCallback(eval_env,  eval_freq=10000, 
-                                deterministic=True, n_eval_episodes=20)
+                                deterministic=True, n_eval_episodes=20, callback_after_eval=success_callback)
     
     model.learn(3_000_000, callback=eval_callback)
     #model.save(f'./model-{train_date}-{m}-{reward}-{seed}')

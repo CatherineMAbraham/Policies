@@ -4,6 +4,7 @@ from stable_baselines3.common.noise import OrnsteinUhlenbeckActionNoise
 from stable_baselines3.common.callbacks import EvalCallback,StopTrainingOnNoModelImprovement
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecFrameStack
 from stable_baselines3.common.env_util import make_vec_env
+from success_callback import StopTrainingOnSuccessRate
 import tensorboard
 #from gym_fracture.envs.fracuresurgery import fracturesurgery_env
 from stable_baselines3.common.monitor import Monitor
@@ -112,11 +113,12 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
 #    early_stop = StopTrainingOnNoModelImprovement(max_no_improvement_evals=10,min_evals=15, verbose=1)
     eval_env = Monitor(gym.make('gym_fracture:anklesurg-v0', **env_kwargs))
     #(make_vec_env(lambda: gym.make('gym_fracture:softsurg-v0', **env_kwargs), n_envs=1))
-
+    success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, max_no_improvement_evals=1,
+                                                                success_threshold=1)
     eval_callback = EvalCallback(eval_env,  eval_freq=10000, 
-                                deterministic=True, n_eval_episodes=20)
+                                deterministic=True, n_eval_episodes=20, callback_after_eval=success_callback)
 
-    model.learn(3_000_000, callback=eval_callback)
+    model.learn(200_000, callback=eval_callback)
     #model_name = f'model-{train_date}-{action_type}-{threshold_pos}-{seed}'
     #save model name in log file
     # with open('./logs/model_log.txt', 'w') as f:
@@ -127,5 +129,5 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
 
 
 if __name__ == "__main__":
-    sweep_id = "7851zgy9"
+    sweep_id = "zs1mt9rc"
     wandb.agent(sweep_id, function=train, count=10)

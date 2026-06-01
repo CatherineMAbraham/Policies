@@ -16,4 +16,5 @@ module load Anaconda3/2024.02-1
 source activate softsurg
 wandb init --entity cmabraham1-university-of-sheffield --project Chp1-Sweep
 # Run the script 
-srun --export=ALL python td3_sweep_v0.py 
+#srun --export=ALL 
+python td3_sweep_v0.py 
