@@ -113,7 +113,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
 #    early_stop = StopTrainingOnNoModelImprovement(max_no_improvement_evals=10,min_evals=15, verbose=1)
     eval_env = Monitor(gym.make('gym_fracture:anklesurg-v0', **env_kwargs))
     #(make_vec_env(lambda: gym.make('gym_fracture:softsurg-v0', **env_kwargs), n_envs=1))
-    success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, max_no_improvement_evals=1,
+    success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, max_no_improvement_evals=5,
                                                                 success_threshold=1)
     eval_callback = EvalCallback(eval_env,  eval_freq=10000, 
                                 deterministic=True, n_eval_episodes=20, callback_after_eval=success_callback)
