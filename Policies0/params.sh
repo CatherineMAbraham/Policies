@@ -3,7 +3,7 @@
 > params.csv
 
 # First three pairs with both fouractions and euler
-pos_ori_pairs_both=("0.00015 1" "0.001 0.15")
+pos_ori_pairs_both=("0.0001 1" "0.001 0.1")
 for pair in "${pos_ori_pairs_both[@]}"; do
   pos=$(echo $pair | cut -d' ' -f1)
   ori=$(echo $pair | cut -d' ' -f2)
