@@ -26,5 +26,5 @@ sweep_config = {"method": "random",
 #Environment config
 
 
-sweep_id = wandb.sweep(sweep_config, project="Chp1-Sweep", entity="cmabraham1-university-of-sheffield")
+sweep_id = wandb.sweep(sweep_config, project="Chp1-Sweep-2", entity="cmabraham1-university-of-sheffield")
 print(f"Initialized Sweep ID: {sweep_id}")
