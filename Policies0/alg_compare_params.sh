@@ -5,8 +5,8 @@
 
 # Generate combinations of models, reward options, and numbers 1-3
 for model in "SAC" "TD3"; do
-    for option in "dense_2" "sparse"; do
-        for num in 1 2 3; do
+    for option in "sparse"; do
+        for num in 4 5 6; do
             echo "$model,$option,$num" >> params_all.csv
         done
     done
