@@ -85,7 +85,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         
     
     #vec_env=make_vec_env('gym_fracture:softsurg-v0', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=SubprocVecEnv)
-    vec_env = gym.make('gym_fracture:anklesurg-v0', **env_kwargs)
+    vec_env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=SubprocVecEnv)
     vec_env = VecNormalize(vec_env, norm_obs=True, norm_reward=False)
     action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(vec_env.action_space.shape[0]), 
                                               sigma=0.02 * np.ones(vec_env.action_space.shape[0]))
@@ -112,7 +112,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     # Separate evaluation env
     #log_callback1 = log_callback.CustomCallback()
 #    early_stop = StopTrainingOnNoModelImprovement(max_no_improvement_evals=10,min_evals=15, verbose=1)
-    eval_env = Monitor(gym.make('gym_fracture:anklesurg-v0', **env_kwargs))
+    eval_env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=SubprocVecEnv)
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     #(make_vec_env(lambda: gym.make('gym_fracture:softsurg-v0', **env_kwargs), n_envs=1))
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, max_no_improvement_evals=5,
