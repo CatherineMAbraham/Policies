@@ -54,8 +54,8 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     x = datetime.datetime.now()
     train_date = x.strftime('%m%d%H%M')
     action_type = action_type
-    threshold_pos = 0.001
-    threshold_ori = np.deg2rad(1)
+    threshold_pos = 0.0005
+    threshold_ori = np.deg2rad(0.5)
     wandb.init(project="Chp1-Sweep-2", sync_tensorboard=True, save_code=True)  # Initialize W&B
     config = wandb.config
     
@@ -131,5 +131,5 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
 
 
 if __name__ == "__main__":
-    sweep_id = "gzlrdcum"
+    sweep_id = "a12dedz2"
     wandb.agent(sweep_id, function=train, count=10)
