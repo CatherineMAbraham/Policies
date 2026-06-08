@@ -69,9 +69,9 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     threshold_ori = np.deg2rad(threshold_ori)
     
     model_name = f'{train_date}-{action_type}-{threshold_pos}-{seed}'
-    tag = 'precision2'
+    #tag = 'precision2'
     if log == 1:
-        wandb.init(project="Chp1-Test", name = (f'{model_name}'),notes= (f"Git Commit: {commit}"),tags=[tag],sync_tensorboard=True, save_code=True)  # Initialize W&B
+        wandb.init(project="Chapter1-Results", name = (f'{model_name}'),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     
     env_kwargs = {
         'reward_type': 'sparse',
@@ -93,26 +93,26 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(env.action_space.shape[0]), 
                                               sigma=0.02 * np.ones(env.action_space.shape[0]))
 
-    policy_kwargs = dict(net_arch=[256, 256,256])#, activation_fn='relu')
+    policy_kwargs = dict(net_arch=[400, 300])#, activation_fn='relu')
 
     model = TD3(policy="MultiInputPolicy", 
                 env=env,verbose=0,
                 replay_buffer_class=HerReplayBuffer,
-                replay_buffer_kwargs=dict(n_sampled_goal=4),
-                learning_rate=linear_schedule(0.0003),
-                train_freq=1,
+                replay_buffer_kwargs=dict(n_sampled_goal=8),
+                learning_rate=linear_schedule(0.003),
+                train_freq=4,
                 buffer_size=1000000,
                 learning_starts=1000,
-                batch_size=256,
-                tau= 0.005,
-                gamma=0.93,
+                batch_size=512,
+                tau= 0.07,
+                gamma=0.9,
                 policy_kwargs=policy_kwargs,
                 gradient_steps=-1,
                 seed=seed, action_noise=action_noise,
                 tensorboard_log=f'./logs/{ran}')
 
     
-    eval_env=make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs,vec_env_cls=DummyVecEnv)
+    eval_env=make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs,vec_env_cls=SubprocVecEnv, n_envs=10)
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
    
    ## Stop training callback based on success rate, model_save_path None and just setting it to save any best model in eval 
@@ -123,10 +123,10 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                                                     model_name = model_name,
                                                     model_save_path=None)
     eval_callback = EvalCallback(eval_env,  eval_freq=10000, 
-                                deterministic=True, n_eval_episodes=50,callback_after_eval=success_callback,
+                                deterministic=True, n_eval_episodes=100,callback_after_eval=success_callback,
                                 verbose=1)
 
-    model.learn(10_000_000, callback=eval_callback)
+    model.learn(2_000_000, callback=eval_callback)
     
     
 
