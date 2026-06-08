@@ -112,7 +112,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                 tensorboard_log=f'./logs/{ran}')
 
     
-    eval_env=make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs,vec_env_cls=SubprocVecEnv, n_envs=10)
+    eval_env=make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs,vec_env_cls=SubprocVecEnv, n_envs=10, seed=seed)
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
    
    ## Stop training callback based on success rate, model_save_path None and just setting it to save any best model in eval 
