@@ -52,7 +52,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     x = datetime.datetime.now()
     train_date = x.strftime('%m%d%H%M')
     #render_mode = render_mode
-    log =0
+    log =1
     eval_seed = 42
     render_mode = 'direct'
     for repo_path in repo_paths:
