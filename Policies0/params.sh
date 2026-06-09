@@ -8,7 +8,7 @@ for pair in "${pos_ori_pairs_both[@]}"; do
   pos=$(echo $pair | cut -d' ' -f1)
   ori=$(echo $pair | cut -d' ' -f2)
   for act in euler fouractions; do
-      for seed in {1..10}; do
+      for seed in {1..3}; do
           echo "$pos,$ori,$act,$seed" >> params.csv
       done
   done
@@ -19,7 +19,7 @@ for pair in "${pos_ori_pairs_both[@]}"; do
   pos=$(echo $pair | cut -d' ' -f1)
   ori=$(echo $pair | cut -d' ' -f2)
   for act in euler; do
-      for seed in {1..10}; do
+      for seed in {1..3}; do
           echo "$pos,$ori,$act,$seed" >> params.csv
       done
   done
