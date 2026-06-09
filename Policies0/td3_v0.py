@@ -54,6 +54,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     #render_mode = render_mode
     log =0
     eval_seed = 42
+    render_mode = 'direct'
     for repo_path in repo_paths:
         try:
             commit = get_git_commit_hash(repo_path)
