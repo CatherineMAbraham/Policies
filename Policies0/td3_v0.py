@@ -85,7 +85,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         'action_type': action_type,
         'softtissue': False,
         'start_pos' : 'home',
-        'render_mode':'human'}
+        'render_mode': render_mode}
         
     
     
@@ -123,7 +123,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         'action_type': action_type,
         'softtissue': False,
         'start_pos' : 'home',
-        'render_mode':'direct'}
+        'render_mode': render_mode}
     eval_env=make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=eval_kwargs,vec_env_cls=SubprocVecEnv, n_envs=10, seed=eval_seed)
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
    
