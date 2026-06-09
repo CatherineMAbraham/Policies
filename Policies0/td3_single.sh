@@ -18,4 +18,4 @@ source activate softsurg
 
 # Run the script
 #srun --export=ALL 
-python td3_v0.py --threshold_pos 0.001 --threshold_ori 1 --action_type euler --render_mode None --log 1
+python td3_v0.py --threshold_pos 0.001 --threshold_ori 1 --action_type euler 
