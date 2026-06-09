@@ -53,6 +53,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     train_date = x.strftime('%m%d%H%M')
     #render_mode = render_mode
     log =0
+    eval_seed = 42
     for repo_path in repo_paths:
         try:
             commit = get_git_commit_hash(repo_path)
@@ -123,7 +124,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         'softtissue': False,
         'start_pos' : 'home',
         'render_mode':'direct'}
-    eval_env=make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=eval_kwargs,vec_env_cls=SubprocVecEnv, n_envs=10, seed=seed)
+    eval_env=make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=eval_kwargs,vec_env_cls=SubprocVecEnv, n_envs=10, seed=eval_seed)
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
    
    ## Stop training callback based on success rate, model_save_path None and just setting it to save any best model in eval 
