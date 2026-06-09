@@ -33,6 +33,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     threshold_pos = threshold_pos
     threshold_ori = np.deg2rad(threshold_ori)
     model_name = model  # keep the requested model name separate from the instantiated model
+    eval_seed = 42
     #print(model_name)
     tag = 'alg_compare'
     wandb.init(project="Chapter1-Results", name = (f'{train_date}-{model}-{reward}-{seed}'),tags=[tag],notes= (f"Git Commit: {commit}, seed: {seed}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
@@ -91,7 +92,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
 
     
     # Separate evaluation env
-    eval_env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=DummyVecEnv, seed=seed)
+    eval_env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=10, vec_env_cls=DummyVecEnv, seed=eval_seed)
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, max_no_improvement_evals=5,
                                                                 success_threshold=1)
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
