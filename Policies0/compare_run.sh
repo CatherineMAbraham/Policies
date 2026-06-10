@@ -21,4 +21,5 @@ PARAM_LINE=$(sed -n "${TASK_ID}p" params_all.csv)
 IFS=',' read -r MODEL REWARD SEED <<< "$PARAM_LINE"
 
 # Run the script
-srun --export=ALL python alg_compare.py --threshold_pos 0.0005 --threshold_ori 0.5 --action_type 'euler' --seed $SEED --reward $REWARD --model $MODEL --ran $TASK_ID
+#srun --export=ALL 
+python alg_compare.py --threshold_pos 0.0005 --threshold_ori 0.5 --action_type 'euler' --seed $SEED --reward $REWARD --model $MODEL --ran $TASK_ID
