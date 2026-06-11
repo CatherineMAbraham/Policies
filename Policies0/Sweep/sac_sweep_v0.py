@@ -134,5 +134,5 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
 
 
 if __name__ == "__main__":
-    sweep_id = "a12dedz2"
+    sweep_id = "f16s6wi6"
     wandb.agent(sweep_id, function=train, count=10)
