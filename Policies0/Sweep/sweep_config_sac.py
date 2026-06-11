@@ -34,8 +34,8 @@ sweep_config = {
 }
 
 # Environment config
-sweep_id = wandb.sweep(sweep_config, project="Chp1-SAC-Sweep", entity="cmabraham1-university-of-sheffield")
-print(f"Initialized SAC Sweep ID: {sweep_id}")
+# sweep_id = wandb.sweep(sweep_config, project="Chp1-SAC-Sweep", entity="cmabraham1-university-of-sheffield")
+# print(f"Initialized SAC Sweep ID: {sweep_id}")
 
 #Environment config
 
