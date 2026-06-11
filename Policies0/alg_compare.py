@@ -35,7 +35,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     model_name = model  # keep the requested model name separate from the instantiated model
     eval_seed = 42
     #print(model_name)
-    tag = 'alg_compare'
+    tag = 'alg_compare_3'
     wandb.init(project="Chapter1-Results", name = (f'{train_date}-{model}-{reward}-{seed}'),tags=[tag],notes= (f"Git Commit: {commit}, seed: {seed}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     
     env_kwargs = {

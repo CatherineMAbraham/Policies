@@ -2,7 +2,7 @@ import gymnasium as gym
 from stable_baselines3 import TD3, HerReplayBuffer
 from stable_baselines3.common.noise import OrnsteinUhlenbeckActionNoise
 from stable_baselines3.common.callbacks import EvalCallback,StopTrainingOnNoModelImprovement
-from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecFrameStack, VecNormalize
+from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecFrameStack, VecNormalize, VecVideoRecorder
 from stable_baselines3.common.env_util import make_vec_env
 import tensorboard
 #from gym_fracture.envs.fracuresurgery import fracturesurgery_env
@@ -14,6 +14,7 @@ import datetime
 from git import Repo, InvalidGitRepositoryError
 import argparse
 from success_callback import StopTrainingOnSuccessRate
+from wandb.integration.sb3 import WandbCallback
 #import log_callback
 repo_paths = ["/users/cop21cma/FracSoftGym/fracturesurgeryenv", "/home/catherine/FractureGym/fracturesurgeryenv",'/home/catherine/FractureSoftGym/fracturesurgeryenv/']
 
@@ -125,9 +126,9 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         'softtissue': False,
         'start_pos' : 'home',
         'render_mode': render_mode}
-    eval_env=make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=eval_kwargs,vec_env_cls=SubprocVecEnv, n_envs=10, seed=eval_seed)
+    eval_env=make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=eval_kwargs,vec_env_cls=SubprocVecEnv, n_envs=1, seed=eval_seed)
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
-   
+    
    ## Stop training callback based on success rate, model_save_path None and just setting it to save any best model in eval 
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
                                                     max_no_improvement_evals=5, 
@@ -135,7 +136,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                                                     min_evals=1, verbose=1, 
                                                     model_name = model_name,
                                                     model_save_path=None)
-    eval_callback = EvalCallback(eval_env,  eval_freq=10000, 
+    eval_callback = EvalCallback(eval_env,  eval_freq=1000, 
                                 deterministic=True, n_eval_episodes=100,callback_after_eval=success_callback,
                                 verbose=1)
 
