@@ -70,7 +70,9 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     learning_starts = config.learning_starts
     her_sampled_goal = config.her_sampled_goal 
     ent_coef = config.ent_coef
-    target_kl = config.target_kl
+    use_sde = config.use_sde
+    sde_sample_freq = config.sde_sample_freq
+
     env_kwargs = {
         'reward_type': 'sparse',
         'max_steps': 100,
@@ -105,7 +107,8 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                 tau= tau,
                 gamma=gamma,
                 ent_coef=ent_coef,
-                target_kl=target_kl,
+                use_sde=use_sde,
+                sde_sample_freq=sde_sample_freq,
                 policy_kwargs=policy_kwargs,
                 gradient_steps=-1,
                 seed=seed, action_noise=action_noise,
@@ -134,5 +137,5 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
 
 
 if __name__ == "__main__":
-    sweep_id = "e90e0j41"
+    sweep_id = "f6udai6j"
     wandb.agent(sweep_id, function=train, count=10)
