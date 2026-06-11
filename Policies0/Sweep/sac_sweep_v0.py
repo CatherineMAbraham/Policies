@@ -56,7 +56,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     action_type = action_type
     threshold_pos = 0.0005
     threshold_ori = np.deg2rad(0.5)
-    wandb.init(project="Chp1-Sweep-2", sync_tensorboard=True, save_code=True)  # Initialize W&B
+    wandb.init(project="Chp1-Sweep-2-SAC", sync_tensorboard=True, save_code=True)  # Initialize W&B
     config = wandb.config
     
     
