@@ -55,7 +55,7 @@ def multiple_envs(model_path,
                 'maxforce': maxforce,
                 'contact_type' : 0,
                 'start_pos' : 'home',
-                'render_mode': 'human',
+                'render_mode': None,
                 'test': True,}
         
         env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs,vec_env_cls=DummyVecEnv, seed=seed)
