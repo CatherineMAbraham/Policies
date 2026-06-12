@@ -72,7 +72,8 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     ent_coef = config.ent_coef
     use_sde = config.use_sde
     sde_sample_freq = config.sde_sample_freq
-
+    if use_sde == False:
+        sde_sample_freq=None
     env_kwargs = {
         'reward_type': 'sparse',
         'max_steps': 100,
@@ -121,7 +122,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     eval_env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=SubprocVecEnv)
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     #(make_vec_env(lambda: gym.make('gym_fracture:softsurg-v0', **env_kwargs), n_envs=1))
-    success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, max_no_improvement_evals=5,
+    success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, max_no_improvement_evals=1,
                                                                 success_threshold=1)
     eval_callback = EvalCallback(eval_env,  eval_freq=10000, 
                                 deterministic=True, n_eval_episodes=20, callback_after_eval=success_callback)
@@ -137,5 +138,5 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
 
 
 if __name__ == "__main__":
-    sweep_id = "f6udai6j"
+    sweep_id = "idyxesfp"
     wandb.agent(sweep_id, function=train, count=10)
