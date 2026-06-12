@@ -4,8 +4,8 @@
 > tests.csv
 
 Generate combinations of tissue option, number of springs
-for file in "rect00125.vtk" "rect001.vtk" "rect005.vtk" "rect0025.vtk"; do
-    for ym in "1e6" "5e6"; do
+for file in "rect00125.vtk"; do
+    for ym in "1e7"; do
         for expert in "trajectory_1" "trajectory_2" "trajectory_3" "trajectory_4" "trajectory_5"; do
             echo "$file,$ym,$expert" >> tests.csv
         done
