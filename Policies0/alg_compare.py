@@ -105,9 +105,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         m='s'
         if reward == 'sparse':
             model = SAC(**sac_kwargs,replay_buffer_class=HerReplayBuffer,
-                        replay_buffer_kwargs=dict(n_sampled_goal=4),
-                        seed=seed,
-                        tensorboard_log=f'./logs/{ran}')
+                        replay_buffer_kwargs=dict(n_sampled_goal=4))
         elif reward.startswith('dense'):
             model = SAC(policy="MultiInputPolicy",
                         env=env, verbose=0,
