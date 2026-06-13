@@ -2,6 +2,7 @@ import gymnasium as gym
 from stable_baselines3 import TD3, SAC, PPO, HerReplayBuffer
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize
+from stable_baselines3.common.noise import NormalActionNoise
 from stable_baselines3.common.env_util import make_vec_env
 from success_callback import StopTrainingOnSuccessRate
 import tensorboard
@@ -53,6 +54,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
     env = VecNormalize(env, norm_obs=True, norm_reward=False)
     #env = gym.make('gym_fracture:anklesurg-v0', **env_kwargs)
+    action_noise = NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.1 * np.ones(env.action_space.shape[0]))
     sac_kwargs = {
         'policy': "MultiInputPolicy",
         'env': env,
@@ -79,8 +81,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         'gamma': 0.98,
         'buffer_size': 200000,
         'learning_starts': 10000,
-        'action_noise': 'normal',
-        'noise_std': 0.1,
+        'action_noise': action_noise,
         'gradient_steps': 1,
         'train_freq': 1,
         'batch_size': 256,
