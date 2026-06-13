@@ -68,7 +68,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         'train_freq': 8,
         'gradient_steps': 8,
         'learning_starts': 10000,
-        'policy_kwargs': "dict(net_arch=[400, 300])",
+        'policy_kwargs': dict(net_arch=[400, 300]),
         # replay_buffer_kwargs: "dict(handle_timeout_termination=True)"
         'use_sde': True,
         'seed': seed,
@@ -86,7 +86,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         'train_freq': 1,
         'batch_size': 256,
         'learning_rate': 7e-4,
-         'policy_kwargs': "dict(net_arch=[400, 300])",
+         'policy_kwargs': dict(net_arch=[400, 300]),
         'seed': seed,
         'tensorboard_log': f'./logs/{ran}'
     }

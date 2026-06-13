@@ -8,5 +8,5 @@ for i in $(seq 1 $NUM_LINES); do
     PARAM_LINE=$(sed -n "${i}p" params_sac.csv)
     IFS=',' read -r MODEL REWARD SEED <<< "$PARAM_LINE"
     echo "Running with MODEL=$MODEL, REWARD=$REWARD, SEED=$SEED"
-    python alg_compare.py --threshold_pos 0.0002 --threshold_ori 0.2 --action_type 'euler' --seed $SEED --reward $REWARD --model $MODEL --ran $i
+    python alg_compare.py --threshold_pos 0.0005 --threshold_ori 0.5 --action_type 'euler' --seed $SEED --reward $REWARD --model $MODEL --ran $i
 done
