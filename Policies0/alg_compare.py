@@ -35,7 +35,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     model_name = model  # keep the requested model name separate from the instantiated model
     eval_seed = 42
     #print(model_name)
-    tag = 'alg_compare_3'
+    tag = 'rl-zoo'
     wandb.init(project="Chapter1-Results", name = (f'{train_date}-{model}-{reward}-{seed}'),tags=[tag],notes= (f"Git Commit: {commit}, seed: {seed}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     
     env_kwargs = {
@@ -53,16 +53,48 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
     env = VecNormalize(env, norm_obs=True, norm_reward=False)
     #env = gym.make('gym_fracture:anklesurg-v0', **env_kwargs)
+    sac_kwargs = {
+        'policy': "MultiInputPolicy",
+        'env': env,
+        'verbose': 0,
+        'learning_rate': 7.3e-4,
+        'buffer_size': 300000,
+        'batch_size': 256,
+        'ent_coef': 'auto',
+        'gamma': 0.98,
+        'tau': 0.02,
+        'train_freq': 8,
+        'gradient_steps': 8,
+        'learning_starts': 10000,
+        'policy_kwargs': "dict(net_arch=[400, 300])",
+        # replay_buffer_kwargs: "dict(handle_timeout_termination=True)"
+        'use_sde': True,
+        'seed': seed,
+        'tensorboard_log': f'./logs/{ran}'
+    }
+    td3_kwargs = {
+        'policy': "MultiInputPolicy",
+        'env': env,
+        'verbose': 0,
+        'gamma': 0.98,
+        'buffer_size': 200000,
+        'learning_starts': 10000,
+        'noise_type': 'normal',
+        'noise_std': 0.1,
+        'gradient_steps': 1,
+        'train_freq': 1,
+        'batch_size': 256,
+        'learning_rate': 7e-4,
+         'policy_kwargs': "dict(net_arch=[400, 300])",
+        'seed': seed,
+        'tensorboard_log': f'./logs/{ran}'
+    }
 
     if model_name == 'TD3':
         m='t'
         if reward == 'sparse':
-            model = TD3(policy="MultiInputPolicy",
-                        env=env, verbose=0,
-                        replay_buffer_class=HerReplayBuffer,
-                        replay_buffer_kwargs=dict(n_sampled_goal=4),
-                        seed=seed,
-                        tensorboard_log=f'./logs/{ran}')
+            model = TD3(**td3_kwargs,replay_buffer_class=HerReplayBuffer,
+                        replay_buffer_kwargs=dict(n_sampled_goal=4))
         elif reward.startswith('dense'):
             model = TD3(policy="MultiInputPolicy",
                         env=env, verbose=0,
@@ -71,9 +103,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     elif model_name == 'SAC':
         m='s'
         if reward == 'sparse':
-            model = SAC(policy="MultiInputPolicy",
-                        env=env, verbose=0,
-                        replay_buffer_class=HerReplayBuffer,
+            model = SAC(**sac_kwargs,replay_buffer_class=HerReplayBuffer,
                         replay_buffer_kwargs=dict(n_sampled_goal=4),
                         seed=seed,
                         tensorboard_log=f'./logs/{ran}')
@@ -123,3 +153,9 @@ if __name__ == "__main__":
           reward=args.reward,
           model=args.model,
           ran=args.ran)
+
+
+## Default parameters for training:
+## sac : 
+## td3: learning rate = 0.001, buffer size, 1e6, learning starts =100, batch_size=256, tau= 0.005, gamma =0.99, train_freq=1, gradient steps=1, action_noise = None
+# replay_buffer_class=HerReplayBuffer, replay_buffer_kwargs=dict(n_sampled_goal=4), n_steps=1, policy_delay =2, target_policy_noise=0.2, target_noise_clip=0.5, policy_kwargs=dict(net_arch=[400, 300]), tensorboard_log=f'./logs/{ran}'
