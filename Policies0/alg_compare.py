@@ -79,7 +79,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         'gamma': 0.98,
         'buffer_size': 200000,
         'learning_starts': 10000,
-        'noise_type': 'normal',
+        'action_noise': 'normal',
         'noise_std': 0.1,
         'gradient_steps': 1,
         'train_freq': 1,
