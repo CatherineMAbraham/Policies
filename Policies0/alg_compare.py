@@ -14,9 +14,10 @@ from git import Repo, InvalidGitRepositoryError
 import argparse
 import re
 import wandb
+import torch.nn as nn
 
 #repo_path = '/home/catherine/FractureSoftGym/fracturesurgeryenv'
-repo_path = "/users/cop21cma/FractureSoftGym/fracturesurgeryenv"
+repo_path = "/users/cop21cma/FractureSoftGym"
 def get_git_commit_hash(repo_path):
     try:
         repo = Repo(repo_path, search_parent_directories=True)
@@ -37,7 +38,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     model_name = model  # keep the requested model name separate from the instantiated model
     eval_seed = 42
     #print(model_name)
-    tag = 'rl-zoo'
+    tag = 'alg_compare'
     wandb.init(project="Chapter1-Results", name = (f'{train_date}-{model}-{reward}-{seed}'),tags=[tag],notes= (f"Git Commit: {commit}, seed: {seed}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     
     env_kwargs = {
@@ -52,7 +53,11 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         'render_mode':'direct'}
 
     #env = SubprocVecEnv([make_env(threshold_pos, threshold_ori, action_type) for _ in range(2)])
-    env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
+    if model_name == 'TD3' or model_name == 'SAC':
+        env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=DummyVecEnv, seed=seed)
+    elif model_name == 'PPO':
+        env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=16, vec_env_cls=SubprocVecEnv, seed=seed)
+    
     env = VecNormalize(env, norm_obs=True, norm_reward=False)
     #env = gym.make('gym_fracture:anklesurg-v0', **env_kwargs)
     action_noise = NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.1 * np.ones(env.action_space.shape[0]))
@@ -70,7 +75,6 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         'gradient_steps': 8,
         'learning_starts': 10000,
         'policy_kwargs': dict(net_arch=[400, 300]),
-        # replay_buffer_kwargs: "dict(handle_timeout_termination=True)"
         'use_sde': True,
         'seed': seed,
         'tensorboard_log': f'./logs/{ran}'
@@ -91,6 +95,27 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         'seed': seed,
         'tensorboard_log': f'./logs/{ran}'
     }
+    ppo_kwargs = {'policy': "MultiInputPolicy",
+                'env': env,
+                'verbose': 0,
+                'batch_size': 128,
+                'n_steps': 512,
+                'gamma': 0.99,
+                'gae_lambda': 0.9,
+                'n_epochs': 20,
+                'ent_coef': 0.0,
+                'sde_sample_freq': 4,
+                'max_grad_norm': 0.5,
+                'vf_coef': 0.5,
+                'learning_rate':3e-5,
+                'use_sde': True,
+                'clip_range': 0.4,
+                'policy_kwargs': dict(log_std_init=-2,
+                                    ortho_init=False,
+                                    activation_fn=nn.ReLU,
+                                    net_arch=dict(pi=[256, 256], vf=[256, 256])
+                                    )
+    }
 
     if model_name == 'TD3':
         m='t'
@@ -98,31 +123,23 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
             model = TD3(**td3_kwargs,replay_buffer_class=HerReplayBuffer,
                         replay_buffer_kwargs=dict(n_sampled_goal=4))
         elif reward.startswith('dense'):
-            model = TD3(policy="MultiInputPolicy",
-                        env=env, verbose=0,
-                        seed=seed,
-                        tensorboard_log=f'./logs/{ran}')
+            model = TD3(**td3_kwargs)
     elif model_name == 'SAC':
         m='s'
         if reward == 'sparse':
             model = SAC(**sac_kwargs,replay_buffer_class=HerReplayBuffer,
                         replay_buffer_kwargs=dict(n_sampled_goal=4))
         elif reward.startswith('dense'):
-            model = SAC(policy="MultiInputPolicy",
-                        env=env, verbose=0,
-                        seed=seed,
-                        tensorboard_log=f'./logs/{ran}')
+            model = SAC(**sac_kwargs)
     elif model_name == 'PPO':
         m='p'
-        model = PPO(policy="MultiInputPolicy",
-                    env=env, verbose=0,
-                    seed=seed,
-                    tensorboard_log=f'./logs/{ran}')
+        model = PPO(**ppo_kwargs)
+
 
 
     
     # Separate evaluation env
-    eval_env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=20, vec_env_cls=SubprocVecEnv, seed=eval_seed)
+    eval_env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=10, vec_env_cls=SubprocVecEnv, seed=eval_seed)
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, max_no_improvement_evals=1,
                                                                 success_threshold=1)
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False, training=False)
@@ -130,7 +147,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     eval_callback = EvalCallback(eval_env,  eval_freq=10000, 
                                 deterministic=True, n_eval_episodes=100, callback_after_eval=success_callback)
     
-    model.learn(2_000_000, callback=eval_callback)
+    model.learn(1_000_000, callback=eval_callback)
     #model.save(f'./model-{train_date}-{m}-{reward}-{seed}')
 
             
