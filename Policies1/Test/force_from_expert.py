@@ -59,7 +59,7 @@ def multiple_envs(model_path,
                 'maxforce': maxforce,
                 'contact_type' : 0,
                 'start_pos' : 'home',
-                'render_mode': 'human',
+                'render_mode': 'direct',
                 'test': True,}
         
         env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs,vec_env_cls=DummyVecEnv, seed=seed)
@@ -104,8 +104,9 @@ def multiple_envs(model_path,
                                 force_axis.append(step_info.get("force_axis_mean"))
 
                                 # Log all steps
-                                if log == 1 and step_info.get("force", 0)<20:
+                                if log == 1 and step_info.get("force", 0)<100:
                                         force_axis_mean = step_info.get("force_axis_mean", [0, 0, 0])
+                                        #print(step_info.get("force", 0))
                                         wandb.log({
                                                 "Step Force": step_info.get("force", 0),
                                                 "X Force": force_axis_mean[0],
