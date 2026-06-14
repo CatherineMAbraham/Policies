@@ -19,4 +19,4 @@ IFS=',' read -r FILE YOUNGS_MODULUS EXPERT <<< "$PARAM_LINE"
 echo "Running test with: Young's Modulus=$YOUNGS_MODULUS, VTK File=$FILE, Expert Trajectory=$EXPERT"
 # Run the script 
 #srun --export=ALL 
-python force_from_expert.py --threshold_pos 0.0001 --threshold_ori 0.5 --maxforce 4 --softtissue soft --youngs_modulus $YOUNGS_MODULUS --vtk_file $FILE --expert $EXPERT --log 0
+python force_from_expert.py --threshold_pos 0.0001 --threshold_ori 0.5 --maxforce 4 --softtissue soft --youngs_modulus $YOUNGS_MODULUS --vtk_file $FILE --expert $EXPERT --log 1
