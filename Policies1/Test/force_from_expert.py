@@ -188,7 +188,7 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
         if args.log == 1:
-                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'meshtest'])
+                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'meshtest5'])
 
         multiple_envs(
                 model_path=args.model_path,
