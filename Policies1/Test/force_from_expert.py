@@ -38,7 +38,7 @@ def multiple_envs(model_path,
                 experiment_action = experiment_action[:, None]
 
         episode_length = experiment_action.shape[0]
-        if vtk_file is None:
+        if vtk_file =='None':
                 softtissue = None
         else:
                 softtissue = 'soft'
@@ -192,7 +192,7 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
         if args.log == 1:
-                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'meshtest6'])
+                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'meshtest52'])
 
         multiple_envs(
                 model_path=args.model_path,
