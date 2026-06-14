@@ -78,6 +78,7 @@ def multiple_envs(model_path,
         stop_replay = False
         #while episodes_collected < num:
         complete = False
+        step_force =[] 
         while complete == False:
                 i = 0
                 restart_from_zero = False
@@ -113,6 +114,7 @@ def multiple_envs(model_path,
                                                 "Angle Distance": step_info.get("angle", 0),
                                         })
 
+                                step_force.append(step_info.get("force", 0))
                                 if not done_flag:
                                         continue
 
@@ -122,7 +124,7 @@ def multiple_envs(model_path,
                                         restart_from_zero = True
                                         break
 
-                                if i == episode_length - 1: ##sometimes failsdue to high force, if it does this I want to restart 
+                                if i == episode_length - 1: ##sometimes fails due to high force, if it does this I want to restart 
                                         complete = True
                                 else:
                                         complete=False
@@ -141,9 +143,9 @@ def multiple_envs(model_path,
 
                 if stop_replay:
                         break
-        print(force)
-        print(np.mean(force) if force else np.nan)
-        print(np.max(force) if force else np.nan)
+        # print(force)
+        # print(np.mean(force) if force else np.nan)
+        # print(np.max(force) if force else np.nan)
         # Plot x, y, z force components against time for valid axis samples.
         valid_force_axis = []
         for axis_vec in force_axis:
@@ -172,7 +174,7 @@ def multiple_envs(model_path,
                 plt.savefig("./force_axis_components.png")
         else:
                 print("No valid force_axis_mean data to plot.")
-        
+        return step_force
 if __name__ == "__main__":
         parser = argparse.ArgumentParser(description="Test the trained model on multiple environments")
         parser.add_argument("--model_path", type=str, help="Path to the trained model zip file")
@@ -192,7 +194,7 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
         if args.log == 1:
-                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'meshtest52'])
+                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'newanchor'])
 
         multiple_envs(
                 model_path=args.model_path,
