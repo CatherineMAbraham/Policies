@@ -2,7 +2,7 @@ import wandb
 
 sweep_config = {
     "method": "random",
-    "metric": {"name": "rollout/success_rate", "goal": "maximize"},
+    "metric": {"name": "eval/success_rate", "goal": "maximize"},
     "parameters": {
         # Core Shared Hyperparameters
         "learning_rate": {"values": [1e-5,3e-5,1e-4,3e-4,1e-3,3e-3], "distribution": "categorical"}, # SAC handles higher LRs better than TD3
@@ -37,5 +37,5 @@ sweep_config = {
 #Environment config
 
 
-sweep_id = wandb.sweep(sweep_config, project="Chp1-Sweep-Sac", entity="cmabraham1-university-of-sheffield")
+sweep_id = wandb.sweep(sweep_config, project="Chapter1-Sweep", entity="cmabraham1-university-of-sheffield")
 print(f"Initialized Sweep ID: {sweep_id}")

@@ -14,6 +14,6 @@
 module load Anaconda3/2024.02-1
 
 source activate softsurg
-wandb init --entity cmabraham1-university-of-sheffield --project Chp1-Sweep-Sac
+wandb init --entity cmabraham1-university-of-sheffield --project Chapter1-Sweep
 # Run the script 
 srun --export=ALL python sac_sweep_v0.py 

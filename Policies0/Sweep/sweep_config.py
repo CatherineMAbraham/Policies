@@ -1,7 +1,7 @@
 import wandb
 #TD3 config
 sweep_config = {"method": "random",
-    "metric": {"name": "rollout/success_rate", "goal": "maximize"},
+    "metric": {"name": "eval/success_rate", "goal": "maximize"},
     "parameters": {
     "learning_rate": {"values": [1e-5,3e-5,1e-4,3e-4,1e-3,3e-3], "distribution": "categorical"},
     "gamma": {"values": [0.9,0.93,0.95,0.97,0.99], "distribution": "categorical"},
@@ -26,5 +26,5 @@ sweep_config = {"method": "random",
 #Environment config
 
 
-sweep_id = wandb.sweep(sweep_config, project="Chp1-Sweep-2", entity="cmabraham1-university-of-sheffield")
+sweep_id = wandb.sweep(sweep_config, project="Chapter1-Sweep", entity="cmabraham1-university-of-sheffield")
 print(f"Initialized Sweep ID: {sweep_id}")
