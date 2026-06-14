@@ -103,7 +103,7 @@ def multiple_envs(model_path,
                                 force_axis.append(step_info.get("force_axis_mean"))
 
                                 # Log all steps
-                                if log == 1 and step_info.get("force", 0)<50:
+                                if log == 1 and step_info.get("force", 0)<20:
                                         force_axis_mean = step_info.get("force_axis_mean", [0, 0, 0])
                                         wandb.log({
                                                 "Step Force": step_info.get("force", 0),
