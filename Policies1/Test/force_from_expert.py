@@ -118,7 +118,7 @@ def multiple_envs(model_path,
                                 if not done_flag:
                                         continue
 
-                                if step_info.get("truncated") and step_info.get("force", 0) >= 100:
+                                if step_info.get("truncated") and step_info.get("force", 0) >= 20:
                                         print("Restarting replay from action 0 after excessive force termination.")
                                         obs = env.reset()
                                         restart_from_zero = True
