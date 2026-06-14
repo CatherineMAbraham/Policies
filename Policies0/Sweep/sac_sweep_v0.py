@@ -49,16 +49,16 @@ def linear_schedule(initial_value: float) -> Callable[[float], float]:
         return func
 
 
-def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_only',seed=42,ran="1"):
+def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_only',seed=1,ran="1"):
     commit = get_git_commit_hash(repo_path)
     x = datetime.datetime.now()
     train_date = x.strftime('%m%d%H%M')
     action_type = action_type
     threshold_pos = 0.0005
     threshold_ori = np.deg2rad(0.5)
-    wandb.init(project="Chp1-Sweep-Sac", sync_tensorboard=True, save_code=True)  # Initialize W&B
+    wandb.init(project="Chapter1-Sweep", sync_tensorboard=True, save_code=True)  # Initialize W&B
     config = wandb.config
-    
+    eval_seed = 42
     
     
     learning_rate = config.learning_rate
@@ -89,7 +89,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         
     
     #vec_env=make_vec_env('gym_fracture:softsurg-v0', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=SubprocVecEnv)
-    vec_env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=SubprocVecEnv)
+    vec_env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=SubprocVecEnv, seed = seed)
     vec_env = VecNormalize(vec_env, norm_obs=True, norm_reward=False)
     action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(vec_env.action_space.shape[0]), 
                                               sigma=0.02 * np.ones(vec_env.action_space.shape[0]))
@@ -119,7 +119,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     # Separate evaluation env
     #log_callback1 = log_callback.CustomCallback()
 #    early_stop = StopTrainingOnNoModelImprovement(max_no_improvement_evals=10,min_evals=15, verbose=1)
-    eval_env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=SubprocVecEnv)
+    eval_env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=SubprocVecEnv, seed = eval_seed)
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     #(make_vec_env(lambda: gym.make('gym_fracture:softsurg-v0', **env_kwargs), n_envs=1))
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, max_no_improvement_evals=1,
@@ -138,5 +138,5 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
 
 
 if __name__ == "__main__":
-    sweep_id = "7byy7cyq"
+    sweep_id = "m2blxque"
     wandb.agent(sweep_id, function=train, count=10)
