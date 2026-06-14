@@ -38,6 +38,10 @@ def multiple_envs(model_path,
                 experiment_action = experiment_action[:, None]
 
         episode_length = experiment_action.shape[0]
+        if vtk_file is None:
+                softtissue = None
+        else:
+                softtissue = 'soft'
         env_kwargs = {
                 'reward_type': 'sparse',
                 'max_steps': episode_length,
@@ -55,7 +59,7 @@ def multiple_envs(model_path,
                 'maxforce': maxforce,
                 'contact_type' : 0,
                 'start_pos' : 'home',
-                'render_mode': None,
+                'render_mode': 'direct',
                 'test': True,}
         
         env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs,vec_env_cls=DummyVecEnv, seed=seed)
@@ -188,7 +192,7 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
         if args.log == 1:
-                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'meshtest5'])
+                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'meshtest6'])
 
         multiple_envs(
                 model_path=args.model_path,
