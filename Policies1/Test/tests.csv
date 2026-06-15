@@ -48,8 +48,8 @@ rect01.vtk,1e7,trajectory_2
 rect01.vtk,1e7,trajectory_3
 rect01.vtk,1e7,trajectory_4
 rect01.vtk,1e7,trajectory_5
-None,1e7,trajectory_1
-None,1e7,trajectory_2
-None,1e7,trajectory_3
-None,1e7,trajectory_4
-None,1e7,trajectory_5
+None,1e7,pos_1
+None,1e7,pos_2
+None,1e7,pos_3
+None,1e7,pos_4
+None,1e7,pos_5

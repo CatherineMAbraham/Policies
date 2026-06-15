@@ -1,5 +1,7 @@
 import os
 
+from git import Repo, Repo
+from git import InvalidGitRepositoryError
 import matplotlib.pyplot as plt
 import numpy as np
 import pybullet as p
@@ -12,7 +14,16 @@ from stable_baselines3.common.monitor import Monitor
 import wandb
 import argparse
 from pathlib import Path
-
+repo_paths = ["/users/cop21cma/FracSoftGym", "/home/catherine/FractureGym",'/home/catherine/FractureSoftGym']
+def get_git_commit_hash(repo_path):
+    try:
+        repo = Repo(repo_path, search_parent_directories=True)
+        return repo.head.commit.hexsha
+    except InvalidGitRepositoryError:
+        print(f"Invalid Git repository at {repo_path}")
+    except Exception as e:
+        print(f"An error occurred while getting the commit hash: {e}")
+        return None
 def multiple_envs(model_path,
                   threshold_pos=0.001, 
                   threshold_ori=0.08,
@@ -27,40 +38,56 @@ def multiple_envs(model_path,
                   vtk_file=None,
                   expert='trajectory_5'):
         "Testing different VTK files, Young's Modulus Values against the expert trajectories, recording forces along the way and plotting them against time."
-        current_dir = os.getcwd()
-        trajectory_path = os.path.join(current_dir, f"Experts/{expert}.npz")
-        with np.load(trajectory_path, allow_pickle=True) as expert:
-                if 'acts' not in expert:
-                        raise KeyError(f"Expected 'acts' in trajectory file {trajectory_path}")
-                experiment_action = np.asarray(expert['acts'])
+        render_mode = None
+        render_mode = render_mode
+        log = 0  
+        for repo_path in repo_paths:
+                try:
+                        commit = get_git_commit_hash(repo_path)
+                        if commit is not None:
+                                print(f"Git commit hash for repository at {repo_path}: {commit}")
+                                if repo_path == "/users/cop21cma/FracSoftGym/fracturesurgeryenv":
+                                        render_mode = None
+                                        log =1 
+                                break
+                except Exception as e: print(f"Could not get commit hash for repository at {repo_path}: {e}")
+        # current_dir = os.getcwd()
+        # trajectory_path = os.path.join(current_dir, f"Experts/{expert}.npz")
+        # with np.load(trajectory_path, allow_pickle=True) as expert:
+        #         if 'acts' not in expert:
+        #                 raise KeyError(f"Expected 'acts' in trajectory file {trajectory_path}")
+        #         experiment_action = np.asarray(expert['acts'])
 
-        if experiment_action.ndim == 1:
-                experiment_action = experiment_action[:, None]
+        # if experiment_action.ndim == 1:
+        #         experiment_action = experiment_action[:, None]
 
-        episode_length = experiment_action.shape[0]
+        # print(experiment_action)
+        # episode_length = experiment_action.shape[0]
         if vtk_file =='None':
                 softtissue = None
         else:
                 softtissue = 'soft'
         env_kwargs = {
                 'reward_type': 'sparse',
-                'max_steps': episode_length,
+                'max_steps': 100,
                 'horizon': 'variable',
                 'obs_type': 'dict',
                 'distance_threshold_pos': threshold_pos,
                 'dt': 1,
                 'dr':1,
+                'action_type': 'pos_only',
                 'distance_threshold_ori': threshold_ori,
+                'start_pos' : 'home',
+                'render_mode': render_mode,
                 'softtissue': softtissue,
                 'vtk_file': vtk_file,
                 'number_of_springs': num_springs,
                 'youngs_modulus': youngs_modulus,
-                'action_type': 'euler',
+                'action_type': 'pos_only',
                 'maxforce': maxforce,
                 'contact_type' : 0,
-                'start_pos' : 'home',
-                'render_mode': 'direct',
-                'test': True,}
+                'seed': seed,
+                'test': True}
         
         env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs,vec_env_cls=DummyVecEnv, seed=seed)
         env = VecNormalize(env, norm_obs=True, norm_reward=False)
@@ -82,8 +109,8 @@ def multiple_envs(model_path,
         while complete == False:
                 i = 0
                 restart_from_zero = False
-                while i < episode_length:
-                        action = experiment_action[i]#env.action_space.sample()
+                while i < 100:
+                        action = env.action_space.sample()
                         #print(f"Step {i+1}/{episode_length}, Action: {action}")
                         action = np.asarray(action)
                         if action.ndim == 1:
@@ -104,6 +131,7 @@ def multiple_envs(model_path,
                                 force_axis.append(step_info.get("force_axis_mean"))
 
                                 # Log all steps
+                                log = 0 
                                 if log == 1 and step_info.get("force", 0)<100:
                                         force_axis_mean = step_info.get("force_axis_mean", [0, 0, 0])
                                         #print(step_info.get("force", 0))
@@ -122,11 +150,15 @@ def multiple_envs(model_path,
 
                                 if step_info.get("truncated") and step_info.get("force", 0) >= 20:
                                         print("Restarting replay from action 0 after excessive force termination.")
+                                        ## I want to remove the logging and start a new wandb run for this new episode, so that the data is not mixed with the previous one.
+                                        if log == 1:
+                                                wandb.finish()
+                                                wandb.init(project="meshconvergence", name=f"{vtk_file}_{expert}_{youngs_modulus}_restart",tags=[expert,'newanchor2'])
                                         obs = env.reset()
                                         restart_from_zero = True
                                         break
 
-                                if i == episode_length - 1: ##sometimes fails due to high force, if it does this I want to restart 
+                                if i == 99: ##sometimes fails due to high force, if it does this I want to restart 
                                         complete = True
                                 else:
                                         complete=False
@@ -196,8 +228,8 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
         if args.log == 1:
-                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'newanchor2'])
-
+                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'env_trajectory'])
+        
         multiple_envs(
                 model_path=args.model_path,
                 maxforce=args.maxforce,
