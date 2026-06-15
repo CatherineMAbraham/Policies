@@ -114,7 +114,9 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                                     ortho_init=False,
                                     activation_fn=nn.ReLU,
                                     net_arch=dict(pi=[256, 256], vf=[256, 256])
-                                    )
+                                    ),
+                'seed': seed,
+                'tensorboard_log': f'./logs/{ran}'
     }
 
     if model_name == 'TD3':
