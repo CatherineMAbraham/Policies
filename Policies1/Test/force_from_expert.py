@@ -40,13 +40,13 @@ def multiple_envs(model_path,
         "Testing different VTK files, Young's Modulus Values against the expert trajectories, recording forces along the way and plotting them against time."
         render_mode = None
         render_mode = render_mode
-        log = 0  
+        log = 1 
         for repo_path in repo_paths:
                 try:
                         commit = get_git_commit_hash(repo_path)
                         if commit is not None:
                                 print(f"Git commit hash for repository at {repo_path}: {commit}")
-                                if repo_path == "/users/cop21cma/FracSoftGym/fracturesurgeryenv":
+                                if repo_path == "/users/cop21cma/FracSoftGym":
                                         render_mode = None
                                         log =1 
                                 break
