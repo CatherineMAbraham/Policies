@@ -129,7 +129,7 @@ def multiple_envs(model_path,
                                 force_axis.append(step_info.get("force_axis_mean"))
 
                                 # Log all steps
-                                log = 0 
+                                #log = 0 
                                 if log == 1 and step_info.get("force", 0)<100:
                                         force_axis_mean = step_info.get("force_axis_mean", [0, 0, 0])
                                         #print(step_info.get("force", 0))
