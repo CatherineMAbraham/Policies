@@ -1,12 +1,12 @@
 import gymnasium as gym
 from stable_baselines3 import TD3, HerReplayBuffer
-from stable_baselines3.common.noise import OrnsteinUhlenbeckActionNoise
-from stable_baselines3.common.callbacks import EvalCallback,StopTrainingOnNoModelImprovement
-from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecFrameStack, VecNormalize, VecVideoRecorder
+from stable_baselines3.common.noise import NormalActionNoise 
+from stable_baselines3.common.callbacks import EvalCallback
+from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize
 from stable_baselines3.common.env_util import make_vec_env
 import tensorboard
 #from gym_fracture.envs.fracuresurgery import fracturesurgery_env
-from stable_baselines3.common.monitor import Monitor
+
 import wandb
 import numpy as np
 from typing import Callable
@@ -14,9 +14,9 @@ import datetime
 from git import Repo, InvalidGitRepositoryError
 import argparse
 from success_callback import StopTrainingOnSuccessRate
-from wandb.integration.sb3 import WandbCallback
+
 #import log_callback
-repo_paths = ["/users/cop21cma/FracSoftGym/fracturesurgeryenv", "/home/catherine/FractureGym/fracturesurgeryenv",'/home/catherine/FractureSoftGym/fracturesurgeryenv/']
+repo_paths = ["/users/cop21cma/FracSoftGym", "/home/catherine/FractureGym",'/home/catherine/FractureSoftGym']
 
 def get_git_commit_hash(repo_path):
     try:
@@ -61,7 +61,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
             commit = get_git_commit_hash(repo_path)
             if commit is not None:
                 print(f"Git commit hash for repository at {repo_path}: {commit}")
-                if repo_path == "/users/cop21cma/FracSoftGym/fracturesurgeryenv":
+                if repo_path == "/users/cop21cma/FracSoftGym":
                     render_mode = None
                     log =1 
                 break
@@ -72,9 +72,13 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     threshold_ori = np.deg2rad(threshold_ori)
     
     model_name = f'{train_date}-{action_type}-{threshold_pos}-{seed}'
-    #tag = 'precision2'
+    if threshold_pos == 0.001 or threshold_pos == 0.0005 or threshold_pos == 0.0001:
+        tag = 'coretests'
+    else:
+        tag = 'precision'
+    
     if log == 1:
-        wandb.init(project="Chapter1-Results", name = (f'{model_name}'),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
+        wandb.init(project="Chapter1-Results", tags=[tag], name = (f'{model_name}'),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     
     env_kwargs = {
         'reward_type': 'sparse',
@@ -93,8 +97,8 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     
     env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
     env = VecNormalize(env, norm_obs=True, norm_reward=False)
-    action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(env.action_space.shape[0]), 
-                                              sigma=0.02 * np.ones(env.action_space.shape[0]))
+    action_noise = NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), 
+                                              sigma=0.1 * np.ones(env.action_space.shape[0]))
 
     policy_kwargs = dict(net_arch=[400, 300])#, activation_fn='relu')
 
@@ -102,13 +106,13 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                 env=env,verbose=0,
                 replay_buffer_class=HerReplayBuffer,
                 replay_buffer_kwargs=dict(n_sampled_goal=8),
-                learning_rate=linear_schedule(0.003),
-                train_freq=4,
+                learning_rate=linear_schedule(0.0007),
+                train_freq=2,
                 buffer_size=1000000,
                 learning_starts=1000,
-                batch_size=512,
-                tau= 0.07,
-                gamma=0.9,
+                batch_size=128,
+                tau= 0.01,
+                gamma=0.93,
                 policy_kwargs=policy_kwargs,
                 gradient_steps=-1,
                 seed=seed, action_noise=action_noise,
@@ -126,7 +130,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         'softtissue': False,
         'start_pos' : 'home',
         'render_mode': render_mode}
-    eval_env=make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=eval_kwargs,vec_env_cls=SubprocVecEnv, n_envs=1, seed=eval_seed)
+    eval_env=make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=eval_kwargs,vec_env_cls=SubprocVecEnv, n_envs=20, seed=eval_seed)
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     
    ## Stop training callback based on success rate, model_save_path None and just setting it to save any best model in eval 
@@ -136,7 +140,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                                                     min_evals=1, verbose=1, 
                                                     model_name = model_name,
                                                     model_save_path=None)
-    eval_callback = EvalCallback(eval_env,  eval_freq=1000, 
+    eval_callback = EvalCallback(eval_env,  eval_freq=10000, 
                                 deterministic=True, n_eval_episodes=100,callback_after_eval=success_callback,
                                 verbose=1)
 
