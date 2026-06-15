@@ -86,7 +86,6 @@ def multiple_envs(model_path,
                 'action_type': 'pos_only',
                 'maxforce': maxforce,
                 'contact_type' : 0,
-                'seed': seed,
                 'test': True}
         
         env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs,vec_env_cls=DummyVecEnv, seed=seed)
