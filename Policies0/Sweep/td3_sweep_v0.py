@@ -1,6 +1,6 @@
 import gymnasium as gym
 from stable_baselines3 import TD3, HerReplayBuffer
-from stable_baselines3.common.noise import OrnsteinUhlenbeckActionNoise
+from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from stable_baselines3.common.callbacks import EvalCallback,StopTrainingOnNoModelImprovement
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecFrameStack, VecNormalize
 from stable_baselines3.common.env_util import make_vec_env
@@ -69,7 +69,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     net_arch = config.net_arch
     learning_starts = config.learning_starts
     her_sampled_goal = config.her_sampled_goal 
-    
+    action_noise = config.action_noise
     env_kwargs = {
         'reward_type': 'sparse',
         'max_steps': 100,
@@ -87,7 +87,11 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     #vec_env=make_vec_env('gym_fracture:softsurg-v0', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=SubprocVecEnv)
     vec_env = make_vec_env('gym_fracture:anklesurg-v0', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=SubprocVecEnv, seed = seed)
     vec_env = VecNormalize(vec_env, norm_obs=True, norm_reward=False)
-    action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(vec_env.action_space.shape[0]), 
+    if action_noise == "normal":
+        action_noise = NormalActionNoise(mean=np.zeros(vec_env.action_space.shape[0]), 
+                                              sigma=0.1 * np.ones(vec_env.action_space.shape[0]))
+    elif action_noise == "OU":
+        action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(vec_env.action_space.shape[0]), 
                                               sigma=0.02 * np.ones(vec_env.action_space.shape[0]))
 
     policy_kwargs = dict(net_arch=net_arch)#, activation_fn='relu')
@@ -131,5 +135,5 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
 
 
 if __name__ == "__main__":
-    sweep_id = "06k010az"
+    sweep_id = "i1rafr7m"
     wandb.agent(sweep_id, function=train, count=10)
