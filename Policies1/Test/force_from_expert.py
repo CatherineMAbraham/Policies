@@ -151,7 +151,7 @@ def multiple_envs(model_path,
                                         ## I want to remove the logging and start a new wandb run for this new episode, so that the data is not mixed with the previous one.
                                         if log == 1:
                                                 wandb.finish()
-                                                wandb.init(project="meshconvergence", name=f"{vtk_file}_{expert}_{youngs_modulus}_restart",tags=[expert,'newanchor2'])
+                                                wandb.init(project="meshconvergence", name=f"{vtk_file}_{expert}_{youngs_modulus}_restart",tags=[expert,'env_trajectory2'])
                                         obs = env.reset()
                                         restart_from_zero = True
                                         break
@@ -226,7 +226,7 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
         if args.log == 1:
-                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'env_trajectory'])
+                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'env_trajectory2'])
         
         multiple_envs(
                 model_path=args.model_path,
