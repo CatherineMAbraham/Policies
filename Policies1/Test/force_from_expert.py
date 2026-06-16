@@ -14,7 +14,7 @@ from stable_baselines3.common.monitor import Monitor
 import wandb
 import argparse
 from pathlib import Path
-repo_paths = ["/users/cop21cma/FracSoftGym", "/home/catherine/FractureGym",'/home/catherine/FractureSoftGym']
+repo_paths = ["/users/cop21cma/FracSoftGym", "/home/catherine/FractureGym",'/home/catherineabraham/FractureSoftGym/']
 def get_git_commit_hash(repo_path):
     try:
         repo = Repo(repo_path, search_parent_directories=True)
@@ -46,7 +46,7 @@ def multiple_envs(model_path,
                         commit = get_git_commit_hash(repo_path)
                         if commit is not None:
                                 print(f"Git commit hash for repository at {repo_path}: {commit}")
-                                if repo_path == "/users/cop21cma/FracSoftGym" or repo_path == "/home/catherine/FractureSoftGym":
+                                if repo_path == "/users/cop21cma/FracSoftGym" or repo_path == "/home/catherineabraham/FractureSoftGym/":
                                         render_mode = None
                                         log =1 
                                 break
