@@ -46,7 +46,7 @@ def multiple_envs(model_path,
                         commit = get_git_commit_hash(repo_path)
                         if commit is not None:
                                 print(f"Git commit hash for repository at {repo_path}: {commit}")
-                                if repo_path == "/users/cop21cma/FracSoftGym" or repo_path == "/home/catherine/FractureGym":
+                                if repo_path == "/users/cop21cma/FracSoftGym" or repo_path == "/home/catherine/FractureSoftGym":
                                         render_mode = None
                                         log =1 
                                 break
