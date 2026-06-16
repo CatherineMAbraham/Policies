@@ -39,41 +39,41 @@ def multiple_envs(model_path,
                   expert='trajectory_5'):
         "Testing different VTK files, Young's Modulus Values against the expert trajectories, recording forces along the way and plotting them against time."
         render_mode = None
-        render_mode = render_mode
-        log = 1 
+        render_mode = 'human'
+        log = 0 
         for repo_path in repo_paths:
                 try:
                         commit = get_git_commit_hash(repo_path)
                         if commit is not None:
                                 print(f"Git commit hash for repository at {repo_path}: {commit}")
-                                if repo_path == "/users/cop21cma/FracSoftGym":
+                                if repo_path == "/users/cop21cma/FracSoftGym" or repo_path == "/home/catherine/FractureGym":
                                         render_mode = None
                                         log =1 
                                 break
                 except Exception as e: print(f"Could not get commit hash for repository at {repo_path}: {e}")
-        # current_dir = os.getcwd()
-        # trajectory_path = os.path.join(current_dir, f"Experts/{expert}.npz")
-        # with np.load(trajectory_path, allow_pickle=True) as expert:
-        #         if 'acts' not in expert:
-        #                 raise KeyError(f"Expected 'acts' in trajectory file {trajectory_path}")
-        #         experiment_action = np.asarray(expert['acts'])
+        current_dir = os.getcwd()
+        trajectory_path = os.path.join(current_dir, f"Experts/{expert}.npz")
+        with np.load(trajectory_path, allow_pickle=True) as expert:
+                if 'acts' not in expert:
+                        raise KeyError(f"Expected 'acts' in trajectory file {trajectory_path}")
+                experiment_action = np.asarray(expert['acts'])
 
-        # if experiment_action.ndim == 1:
-        #         experiment_action = experiment_action[:, None]
+        if experiment_action.ndim == 1:
+                experiment_action = experiment_action[:, None]
 
-        # print(experiment_action)
-        # episode_length = experiment_action.shape[0]
+        #print(experiment_action)
+        episode_length = experiment_action.shape[0]
         if vtk_file =='None':
                 softtissue = None
         else:
                 softtissue = 'soft'
         env_kwargs = {
                 'reward_type': 'sparse',
-                'max_steps': 100,
+                'max_steps': episode_length,
                 'horizon': 'variable',
                 'obs_type': 'dict',
                 'distance_threshold_pos': threshold_pos,
-                'dt': 0.001,
+                'goal_type': [ 0.31386754, -0.05483347, 0.15742039, 0.99005986, 0.12596425, 0.02866477, -0.05561312],
                 'dr':0.01,
                 'action_type': 'euler',
                 'distance_threshold_ori': threshold_ori,
@@ -85,11 +85,13 @@ def multiple_envs(model_path,
                 'youngs_modulus': youngs_modulus,
                 'maxforce': maxforce,
                 'contact_type' : 0,
-                'test': True}
+                'test': False}
         
         env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs,vec_env_cls=DummyVecEnv, seed=seed)
         env = VecNormalize(env, norm_obs=True, norm_reward=False)
-        
+        current_dir = os.getcwd()
+        model_path= f"{current_dir}/model-05131014-spring-4.0/model-05131014-spring-4.0"
+        model = TD3.load(model_path, env=env)
         force = []
         force_axis = []
         num = 1
@@ -107,10 +109,13 @@ def multiple_envs(model_path,
         while complete == False:
                 i = 0
                 restart_from_zero = False
-                while i < 100:
-                        action = env.action_space.sample()
+                while i < episode_length:
+                        #print(episode_length)
+                        action_pos = experiment_action[i][0:3]/1000
+                        action_ori = experiment_action[i][3:6]
+                        action_ori= p.getQuaternionFromEuler(np.deg2rad(action_ori))
                         #print(f"Step {i+1}/{episode_length}, Action: {action}")
-                        action = np.asarray(action)
+                        action = model.predict(obs)[0]  # np.concatenate([action_pos, action_ori])
                         if action.ndim == 1:
                                 action = action[None, :]
                         #print(action)
@@ -144,37 +149,32 @@ def multiple_envs(model_path,
 
                                 step_force.append(step_info.get("force", 0))
                                 if not done_flag:
+                                        i+=1
                                         continue
 
-                                if step_info.get("truncated") and step_info.get("force", 0) >= 20:
+                                if step_info.get("truncated") and step_info.get("force_fail", 0) == True:
                                         print("Restarting replay from action 0 after excessive force termination.")
                                         ## I want to remove the logging and start a new wandb run for this new episode, so that the data is not mixed with the previous one.
                                         if log == 1:
                                                 wandb.finish()
-                                                wandb.init(project="meshconvergence", name=f"{vtk_file}_{expert}_{youngs_modulus}_restart",tags=[expert,'env_trajectory5'])
+                                                ##delete the run from wandb, so that it does not show up in the dashboard.
+                                                run = wandb.run
+                                                if run is not None:
+                                                        run_id = run.id
+                                                        api = wandb.Api()
+                                                        api.delete_run(f"meshconvergence/{run_id}")
+                                                wandb.init(project="meshconvergence", name=f"{vtk_file}_{expert}_{youngs_modulus}_restart",tags=[expert,'model_trajectory'])
                                         obs = env.reset()
                                         restart_from_zero = True
+                                        i=0
                                         break
-
-                                if i == 99: ##sometimes fails due to high force, if it does this I want to restart 
-                                        complete = True
-                                else:
-                                        complete=False
-                                print(eps)
-                                if episodes_collected >= num:
-                                        stop_replay = True
+                                
+                                if restart_from_zero == True:
                                         break
-
-                        if restart_from_zero:
-                                break
-
-                        i += 1
-
-                if restart_from_zero:
-                        continue
-
-                if stop_replay:
-                        break
+                        if restart_from_zero == True:
+                                continue
+                if restart_from_zero == False:
+                        complete = True
         # print(force)
         # print(np.mean(force) if force else np.nan)
         # print(np.max(force) if force else np.nan)
@@ -226,7 +226,7 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
         if args.log == 1:
-                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'env_trajectory5'])
+                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'model_trajectory'])
         
         multiple_envs(
                 model_path=args.model_path,

@@ -128,7 +128,7 @@ def train(threshold_pos=0.001,
         'number_of_springs':num_springs,
         'softtissue':softtissue,
         'test': False,
-        'render_mode': render_mode}
+        'render_mode': 'human'}
         #"0.025 -0.04 0" rpy="0 1.57 0"
    
     env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
@@ -163,14 +163,14 @@ def train(threshold_pos=0.001,
             'dt': 0.001,
             'dr':0.01,
             'distance_threshold_ori': threshold_ori,
-            'action_type': action_type,
+            'action_type': 'pos_only',
             'start_pos' : 'home',
             'maxforce': maxforce,
             'contact_type' :contact_type,
             'number_of_springs':num_springs,
             'softtissue':softtissue,
             'test': False,
-            'render_mode': None}
+            'render_mode': 'direct'}
     eval_env=make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=eval_env_kwargs,vec_env_cls=SubprocVecEnv)
     
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
