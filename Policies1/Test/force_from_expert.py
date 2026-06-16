@@ -90,7 +90,7 @@ def multiple_envs(model_path,
         env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs,vec_env_cls=DummyVecEnv, seed=seed)
         env = VecNormalize(env, norm_obs=True, norm_reward=False)
         current_dir = os.getcwd()
-        model_path= f"{current_dir}/model-05131014-spring-4.0/model-05131014-spring-4.0"
+        model_path= f"{current_dir}/model-None_0_1.0_03220908/model-None_0_1.0_03220908"
         model = TD3.load(model_path, env=env)
         force = []
         force_axis = []
