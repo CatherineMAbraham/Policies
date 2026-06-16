@@ -39,7 +39,7 @@ def multiple_envs(model_path,
                   expert='trajectory_5'):
         "Testing different VTK files, Young's Modulus Values against the expert trajectories, recording forces along the way and plotting them against time."
         render_mode = None
-        render_mode = 'human'
+        #render_mode = 'human'
         log = 0 
         for repo_path in repo_paths:
                 try:
