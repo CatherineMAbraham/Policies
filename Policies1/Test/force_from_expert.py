@@ -63,7 +63,7 @@ def multiple_envs(model_path,
 
         # #print(experiment_action)
         # episode_length = experiment_action.shape[0]
-        goal = [ 0.35701957, -0.06,        0.15526956, 1.80000000e+02, 1.57154150e-13, 2.28130818e-02] + [0.0125,0.022,0.003,15,5,15]
+        goal = [ 0.35701957, -0.06,        0.15526956, 1.80000000e+02, 1.57154150e-13, 2.28130818e-02] - [0.0125,0.008,0.003,15,5,15]
         goal = np.array(goal)
         goal[3:7] = p.getQuaternionFromEuler(goal[3:6])
         if vtk_file =='None':
