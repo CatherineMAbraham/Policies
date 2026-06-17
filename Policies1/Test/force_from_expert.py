@@ -63,6 +63,9 @@ def multiple_envs(model_path,
 
         # #print(experiment_action)
         # episode_length = experiment_action.shape[0]
+        goal = [ 0.35701957, -0.06,        0.15526956, 1.80000000e+02, 1.57154150e-13, 2.28130818e-02] + [0.0125,0.022,0.003,15,5,15]
+        goal = np.array(goal)
+        goal[3:7] = p.getQuaternionFromEuler(goal[3:6])
         if vtk_file =='None':
                 softtissue = None
         else:
@@ -73,7 +76,7 @@ def multiple_envs(model_path,
                 'horizon': 'variable',
                 'obs_type': 'dict',
                 'distance_threshold_pos': threshold_pos,
-                'goal_type': [ 0.31386754, -0.05483347, 0.15742039, 0.99005986, 0.12596425, 0.02866477, -0.05561312],
+                'goal_type': goal,
                 'dr':0.01,
                 'dt': 0.001,
                 'action_type': 'euler',
@@ -164,7 +167,7 @@ def multiple_envs(model_path,
                                                         run_id = run.id
                                                         api = wandb.Api()
                                                         api.delete_run(f"meshconvergence/{run_id}")
-                                                wandb.init(project="meshconvergence", name=f"{vtk_file}_{expert}_{youngs_modulus}_restart",tags=[expert,'model_trajectory6'])
+                                                wandb.init(project="meshconvergence", name=f"{vtk_file}_{expert}_{youngs_modulus}_restart",tags=[expert,'model_trajectory_high'])
                                         obs = env.reset()
                                         restart_from_zero = True
                                         i=0
@@ -227,7 +230,7 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
         if args.log == 1:
-                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'model_trajectory6'])
+                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'model_trajectory_high'])
         
         multiple_envs(
                 model_path=args.model_path,
