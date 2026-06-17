@@ -40,7 +40,7 @@ def multiple_envs(model_path,
         "Testing different VTK files, Young's Modulus Values against the expert trajectories, recording forces along the way and plotting them against time."
         render_mode = None
         #render_mode = 'human'
-        #log = 0 
+        log = 0 
         for repo_path in repo_paths:
                 try:
                         commit = get_git_commit_hash(repo_path)
@@ -63,9 +63,13 @@ def multiple_envs(model_path,
 
         # #print(experiment_action)
         # episode_length = experiment_action.shape[0]
-        goal = [ 0.35701957, -0.06,        0.15526956, 1.80000000e+02, 1.57154150e-13, 2.28130818e-02] - [0.0125,0.008,0.003,15,5,15]
-        goal = np.array(goal)
-        goal[3:7] = p.getQuaternionFromEuler(goal[3:6])
+        start = [ 0.35701957, -0.06,        0.15526956, 1.80000000e+02, 1.57154150e-13, 2.28130818e-02]
+        delta = [0.0125,0.008,0.003,15,5,15]
+        goal_pos =  np.array([start[0]+delta[0], start[1]+delta[1], start[2]+delta[2]])
+        goal_ori = p.getQuaternionFromEuler(np.deg2rad([start[3]+delta[3], start[4]+delta[4], start[5]+delta[5]+0]))
+        
+        goal = np.concatenate([goal_pos, goal_ori])
+        print(f"Goal: {goal}")
         if vtk_file =='None':
                 softtissue = None
         else:
@@ -167,7 +171,7 @@ def multiple_envs(model_path,
                                                         run_id = run.id
                                                         api = wandb.Api()
                                                         api.delete_run(f"meshconvergence/{run_id}")
-                                                wandb.init(project="meshconvergence", name=f"{vtk_file}_{expert}_{youngs_modulus}_restart",tags=[expert,'model_trajectory_high'])
+                                                wandb.init(project="meshconvergence", name=f"{vtk_file}_{expert}_{youngs_modulus}_restart",tags=[expert,'model_trajectory_high2'])
                                         obs = env.reset()
                                         restart_from_zero = True
                                         i=0
@@ -230,7 +234,7 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
         if args.log == 1:
-                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'model_trajectory_high'])
+                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'model_trajectory_high2'])
         
         multiple_envs(
                 model_path=args.model_path,
