@@ -65,7 +65,7 @@ def multiple_envs(model_path,
         # episode_length = experiment_action.shape[0]
         start = [ 0.35701957, -0.06,        0.15526956, 1.80000000e+02, 1.57154150e-13, 2.28130818e-02]
         delta = [0.0125,0.008,0.003,15,5,15]
-        goal_pos =  np.array([start[0]-delta[0], start[1]+delta[1], start[2]+delta[2]])
+        goal_pos =  np.array([start[0]+delta[0], start[1]-delta[1], start[2]+delta[2]])
         goal_ori = p.getQuaternionFromEuler(np.deg2rad([start[3]+delta[3], start[4]+delta[4], start[5]+delta[5]+0]))
         
         goal = np.concatenate([goal_pos, goal_ori])
