@@ -144,7 +144,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                                 deterministic=True, n_eval_episodes=100,callback_after_eval=success_callback,
                                 verbose=1)
 
-    model.learn(2_000_000, callback=eval_callback)
+    model.learn(1_500_000, callback=eval_callback)
     
     
 
