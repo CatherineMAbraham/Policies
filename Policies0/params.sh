@@ -26,14 +26,13 @@ for pair in "${pos_ori_pairs_both[@]}"; do
 done
 
 # Last two pairs with only euler
-# pos_ori_pairs_euler=("0.00008 1" "0.0001 0.8")
-# for pair in "${pos_ori_pairs_euler[@]}"; do
-#   pos=$(echo $pair | cut -d' ' -f1)
-#   ori=$(echo $pair | cut -d' ' -f2)
-#   for act in euler fouractions; do
-#       for seed in 1; do
-#           echo "$pos,$ori,$act,$seed" >> params.csv
-#       done
-#   done
-# done
+pos=("0.001" "0.0005" "0.0001")
+for pair in "${pos[@]}"; do
+  pos=$(echo $pair | cut -d' ' -f1)
+  for act in pos_only; do
+      for seed in {1..10}; do
+          echo "$pos,$act,$seed" >> params.csv
+      done
+  done
+done
 

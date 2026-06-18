@@ -73,7 +73,10 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     
     model_name = f'{train_date}-{action_type}-{threshold_pos}-{seed}'
     if threshold_pos == 0.001 or threshold_pos == 0.0005 or threshold_pos == 0.0001:
-        tag = 'coretests'
+        if action_type == 'pos_only':
+            tag = 'pos_only'
+        else:
+            tag = 'coretests'
     else:
         tag = 'precision'
     
