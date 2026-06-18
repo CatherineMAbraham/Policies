@@ -114,6 +114,7 @@ def multiple_envs(model_path,
         #while episodes_collected < num:
         complete = False
         step_force =[] 
+        action = np.array([0,0.6,0,0,0,0,0])
         while complete == False:
                 i = 0
                 restart_from_zero = False
@@ -123,7 +124,7 @@ def multiple_envs(model_path,
                         # action_ori = experiment_action[i][3:6]
                         # action_ori= p.getQuaternionFromEuler(np.deg2rad(action_ori))
                         #print(f"Step {i+1}/{episode_length}, Action: {action}")
-                        action = model.predict(obs)[0]  # np.concatenate([action_pos, action_ori])
+                        action = action#model.predict(obs)[0]  # np.concatenate([action_pos, action_ori])
                         if action.ndim == 1:
                                 action = action[None, :]
                         #print(action)
@@ -171,7 +172,7 @@ def multiple_envs(model_path,
                                                         run_id = run.id
                                                         api = wandb.Api()
                                                         api.delete_run(f"meshconvergence/{run_id}")
-                                                wandb.init(project="meshconvergence", name=f"{vtk_file}_{expert}_{youngs_modulus}_restart",tags=[expert,'model_trajectory_high2'])
+                                                wandb.init(project="meshconvergence", name=f"{vtk_file}_{expert}_{youngs_modulus}_restart",tags=[expert,'model_trajectory_y'])
                                         obs = env.reset()
                                         restart_from_zero = True
                                         i=0
@@ -234,7 +235,7 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
         if args.log == 1:
-                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'model_trajectory_high2'])
+                wandb.init(project="meshconvergence", name=f"{args.vtk_file}_{args.expert}_{args.youngs_modulus}",tags=[args.expert,'model_trajectory_y'])
         
         multiple_envs(
                 model_path=args.model_path,
