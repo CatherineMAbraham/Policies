@@ -51,18 +51,19 @@ def multiple_envs(model_path,
                                         log =1 
                                 break
                 except Exception as e: print(f"Could not get commit hash for repository at {repo_path}: {e}")
-        # current_dir = os.getcwd()
-        # trajectory_path = os.path.join(current_dir, f"Experts/{expert}.npz")
-        # with np.load(trajectory_path, allow_pickle=True) as expert:
-        #         if 'acts' not in expert:
-        #                 raise KeyError(f"Expected 'acts' in trajectory file {trajectory_path}")
-        #         experiment_action = np.asarray(expert['acts'])
+        current_dir = os.getcwd()
+        #trajectory_path = os.path.join(current_dir, f"/Experts/{expert}.npz")
+        trajectory_path =  f"./Experts/{expert}.npz"
+        with np.load(trajectory_path, allow_pickle=True) as expert:
+                if 'acts' not in expert:
+                        raise KeyError(f"Expected 'acts' in trajectory file {trajectory_path}")
+                experiment_action = np.asarray(expert['acts'])
 
-        # if experiment_action.ndim == 1:
-        #         experiment_action = experiment_action[:, None]
+        if experiment_action.ndim == 1:
+                experiment_action = experiment_action[:, None]
 
-        # #print(experiment_action)
-        # episode_length = experiment_action.shape[0]
+        #print(experiment_action)
+        episode_length = experiment_action.shape[0]
         start = [ 0.35701957, -0.06,        0.15526956, 1.80000000e+02, 1.57154150e-13, 2.28130818e-02]
         delta = [0.0125,0.008,0.003,15,5,15]
         goal_pos =  np.array([start[0]+delta[0], start[1]-delta[1], start[2]+delta[2]])
@@ -76,11 +77,10 @@ def multiple_envs(model_path,
                 softtissue = 'soft'
         env_kwargs = {
                 'reward_type': 'sparse',
-                'max_steps': 100,
+                'max_steps': episode_length,
                 'horizon': 'variable',
                 'obs_type': 'dict',
                 'distance_threshold_pos': threshold_pos,
-                'goal_type': goal,
                 'dr':0.01,
                 'dt': 0.001,
                 'action_type': 'euler',
@@ -98,8 +98,8 @@ def multiple_envs(model_path,
         env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs,vec_env_cls=DummyVecEnv, seed=seed)
         env = VecNormalize(env, norm_obs=True, norm_reward=False)
         current_dir = os.getcwd()
-        model_path= f"{current_dir}/model-None_0_1.0_03220908/model-None_0_1.0_03220908"
-        model = TD3.load(model_path, env=env)
+        #model_path= f"{current_dir}/model-None_0_1.0_03220908/model-None_0_1.0_03220908"
+        #model = TD3.load(model_path, env=env)
         force = []
         force_axis = []
         num = 1
@@ -118,13 +118,13 @@ def multiple_envs(model_path,
         while complete == False:
                 i = 0
                 restart_from_zero = False
-                while i < 100:
+                while i < len(experiment_action):
                         #print(episode_length)
-                        # action_pos = experiment_action[i][0:3]/1000
-                        # action_ori = experiment_action[i][3:6]
+                        action_pos = experiment_action[i][0:3]/1000
+                        action_ori = experiment_action[i][3:6]
                         # action_ori= p.getQuaternionFromEuler(np.deg2rad(action_ori))
                         #print(f"Step {i+1}/{episode_length}, Action: {action}")
-                        action = action#model.predict(obs)[0]  # np.concatenate([action_pos, action_ori])
+                        action = np.concatenate([action_pos, action_ori])#action#model.predict(obs)[0]  # 
                         if action.ndim == 1:
                                 action = action[None, :]
                         #print(action)
