@@ -44,7 +44,7 @@ def normalize_force_trajectory(force_values: np.ndarray, completion_grid: np.nda
     return np.interp(completion_grid, original_completion, clean_force)
 
 def get_expert():
-    file_pattern = '/home/catherine/Important Folders/Data/Phantom/Sanjeev/*.csv'
+    file_pattern = './Sanjeev/*.csv'
     file_list = sorted(glob.glob(file_pattern))
     all_normalized_csvs = []
 
