@@ -93,7 +93,7 @@ def multiple_envs(model_path,
                 'youngs_modulus': youngs_modulus,
                 'maxforce': maxforce,
                 'contact_type' : 0,
-                'test': False}
+                'test': True}
         
         env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs,vec_env_cls=DummyVecEnv, seed=seed)
         env = VecNormalize(env, norm_obs=True, norm_reward=False)
