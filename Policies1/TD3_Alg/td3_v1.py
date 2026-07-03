@@ -14,7 +14,7 @@ from git import Repo, InvalidGitRepositoryError
 import argparse
 import log_callback
 from success_callback import StopTrainingOnSuccessRate
-from env_test2 import multiple_envs 
+#from env_test2 import multiple_envs 
 #repo_path = "/home/catherine/FractureGym/fracturesurgeryenv"
 repo_paths = ["/users/cop21cma/FracSoftGym/fracturesurgeryenv", "/home/catherine/FractureGym/fracturesurgeryenv",'/home/catherine/FractureSoftGym/fracturesurgeryenv/']
 
