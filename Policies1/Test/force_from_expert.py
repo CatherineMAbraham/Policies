@@ -164,15 +164,15 @@ def multiple_envs(model_path,
                                 if step_info.get("truncated") and step_info.get("force_fail", 0) == True:
                                         print("Restarting replay from action 0 after excessive force termination.")
                                         ## I want to remove the logging and start a new wandb run for this new episode, so that the data is not mixed with the previous one.
-                                        if log == 1:
-                                                wandb.finish()
-                                                ##delete the run from wandb, so that it does not show up in the dashboard.
-                                                run = wandb.run
-                                                if run is not None:
-                                                        run_id = run.id
-                                                        api = wandb.Api()
-                                                        api.delete_run(f"meshconvergence/{run_id}")
-                                                wandb.init(project="meshconvergence", name=f"{vtk_file}_{expert}_{youngs_modulus}_restart",tags=[expert,'model_trajectory_y'])
+                                        # if log == 1:
+                                        #         wandb.finish()
+                                        #         ##delete the run from wandb, so that it does not show up in the dashboard.
+                                        #         run = wandb.run
+                                        #         if run is not None:
+                                        #                 run_id = run.id
+                                        #                 api = wandb.Api()
+                                        #                 api.delete_run(f"meshconvergence/{run_id}")
+                                        #         wandb.init(project="meshconvergence", name=f"{vtk_file}_{expert}_{youngs_modulus}_restart",tags=[expert,'model_trajectory_y'])
                                         obs = env.reset()
                                         restart_from_zero = True
                                         i=0
