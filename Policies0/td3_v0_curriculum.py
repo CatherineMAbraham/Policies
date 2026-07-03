@@ -142,7 +142,8 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     current_threshold_pos = threshold_pos
     current_threshold_ori = threshold_ori
-    for i in range(10):
+
+    for i in range(4):
         print(f"\n--- Starting Curriculum Stage {i+1}/10 ---")
         print(f"Current Thresholds -> Pos (mm): {current_threshold_pos*1000:.5f}, Ori (rad): {current_threshold_ori:.5f}")
         for e in env.envs:
@@ -162,11 +163,11 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                                     deterministic=True, n_eval_episodes=100,callback_after_eval=success_callback,
                                     verbose=1)
 
-        model.learn(500_000_000, callback=eval_callback,reset_num_timesteps=False)
+        model.learn(5_000_000, callback=eval_callback,reset_num_timesteps=False)
     
         current_threshold_pos, current_threshold_ori = next_thresholds(current_threshold_pos, current_threshold_ori)
-
-        
+        wandb.log({"current_threshold_pos": current_threshold_pos, "current_threshold_ori": current_threshold_ori})
+        i += 1
 
 
 if __name__ == "__main__":

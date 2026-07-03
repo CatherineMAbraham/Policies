@@ -13,7 +13,7 @@
 #   done
 # done
 
-pos_ori_pairs_both=("0.00015 0.15")
+pos_ori_pairs_both=("0.0002 0.2")
 for pair in "${pos_ori_pairs_both[@]}"; do
   pos=$(echo $pair | cut -d' ' -f1)
   ori=$(echo $pair | cut -d' ' -f2)
