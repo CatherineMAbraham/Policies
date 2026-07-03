@@ -1,3 +1,5 @@
+from pyexpat import model
+
 import gymnasium as gym
 from stable_baselines3 import TD3, HerReplayBuffer
 from stable_baselines3.common.noise import OrnsteinUhlenbeckActionNoise
@@ -12,6 +14,7 @@ from git import Repo, InvalidGitRepositoryError
 import argparse
 import log_callback
 from success_callback import StopTrainingOnSuccessRate
+from env_test2 import multiple_envs 
 #repo_path = "/home/catherine/FractureGym/fracturesurgeryenv"
 repo_paths = ["/users/cop21cma/FracSoftGym/fracturesurgeryenv", "/home/catherine/FractureGym/fracturesurgeryenv",'/home/catherine/FractureSoftGym/fracturesurgeryenv/']
 
@@ -128,7 +131,7 @@ def train(threshold_pos=0.001,
         'number_of_springs':num_springs,
         'softtissue':softtissue,
         'test': False,
-        'render_mode': 'human'}
+        'render_mode': 'direct'}
         #"0.025 -0.04 0" rpy="0 1.57 0"
    
     env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
@@ -163,7 +166,7 @@ def train(threshold_pos=0.001,
             'dt': 0.001,
             'dr':0.01,
             'distance_threshold_ori': threshold_ori,
-            'action_type': 'pos_only',
+            'action_type': action_type,
             'start_pos' : 'home',
             'maxforce': maxforce,
             'contact_type' :contact_type,
@@ -188,15 +191,106 @@ def train(threshold_pos=0.001,
         callback = [eval_callback, log_callback1]
     else:
         callback = [eval_callback]
-    model.learn(2_500_000, callback=callback)
+    model.learn(500_000, callback=callback)
     #save model name in log file
     with open('./logs/model_log.txt', 'w') as f:
         f.write(f'{model_name}\n')
     model.save(f'./models/{model_name}')
     model.save_replay_buffer(f'./models/{model_name}-rb')
    
+    ## Evalulate the model using the FEM model 
+    
+    vtk_file = 'rect0009.vtk'
+    soft_eval_env_kwargs = {
+                'reward_type': 'sparse',
+                'max_steps': 100,
+                'horizon': 'variable',
+                'obs_type': 'dict',
+                'distance_threshold_pos': threshold_pos,
+                'dt': 0.001,
+                'dr':0.01,
+                'distance_threshold_ori': threshold_ori,
+                'softtissue': softtissue,
+                'number_of_springs': num_springs,
+                'youngs_modulus': youngs_modulus,
+                'vtk_file': vtk_file,
+                'action_type': 'euler',
+                'maxforce': maxforce,
+                'contact_type' : 1,
+                'start_pos' : 'home',
+                'render_mode': 'human',
+                'test': True,}
+    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v1', n_envs=10, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=seed)
+    
+    soft_eval_env = VecNormalize(soft_eval_env, norm_obs=True, norm_reward=False)
+
+    soft_eval_env.obs_rms = env.obs_rms  # Direct reference copy of the running means
+    soft_eval_env.training = False       # FREEZE STATS: Essential so eval steps don't corrupt them
+    soft_eval_env.norm_reward = False
+
+    # 4. Create an identical, blank TD3 architecture hooked up to the new environment
+    eval_model = TD3("MultiInputPolicy",
+                env=env,verbose=0,
+                replay_buffer_class=HerReplayBuffer,
+                replay_buffer_kwargs=dict(n_sampled_goal=8,goal_selection_strategy='future'),
+                learning_rate=linear_schedule(0.001),
+                train_freq=1,
+                buffer_size=1000000,
+                learning_starts=2000,
+                batch_size=512,
+                tau= 0.02,
+                gamma=0.90,
+                policy_kwargs=policy_kwargs,
+                gradient_steps=-1,
+                seed=seed, action_noise=action_noise,tensorboard_log=f'./logs/{ran}')
 
 
+# 5. DIRECT RAM TRANSFER: Copy the neural network weights directly over
+    eval_model.set_parameters(model.get_parameters())
+
+    dones = []
+    contacts = []
+    num = 100
+    episodes_collected = 0
+    obs = soft_eval_env.reset()
+    #print(f"Initial observation: {obs}")
+    eps = 0
+    while episodes_collected < num:
+            action, _ = eval_model.predict(obs, deterministic=True)
+            obs, reward, dones_array, info_list = soft_eval_env.step(action)
+            
+            for i in range(soft_eval_env.num_envs):
+                    if dones_array[i]:
+                            info = info_list[i]
+                            
+                            # 1. Get the actual final observation (before the auto-reset)
+                            # This is critical if you want to calculate metrics manually
+                            final_obs = info.get("terminal_observation")
+                            
+                            # 2. Get the success flag provided by the environment/Monitor
+                            is_success = info.get("is_success", False)
+                            
+                            # 3. Get your custom 'contact' metric
+                            # Note: Ensure your env puts 'contact' in the info dict even on the final step!
+                            has_contact = info.get("contact", False)
+                            
+                            dones.append(is_success)
+                            contacts.append(has_contact)
+                            
+                            episodes_collected += 1
+                            print(f"[{episodes_collected}/{num}] Env {i} Success: {is_success} Force: {info.get('force')} Pos: {info.get('pos_distance')} Angle: {info.get('angle')} Contact: {has_contact}, Success Rate: {sum(dones) / len(dones)}")
+                            ## If force >50 do not log to wandb as it is an outlier and can skew the results
+                            # remove number of episodes collected from the success rate calculation in the log as well
+                            if info.get('force', 0) <= 50:
+                                    eps +=1
+                            if log==1 :
+                                #table = wandb.Table(data = is_success,columns=["Episode", "Success"])
+                                #histogram = wandb.plot.Histogram(table,value='Success', title="Success Distribution")
+                                wandb.log({"Episode": episodes_collected,  "Contact": has_contact, "force": info.get('force', 0), "Position Distance": info.get('pos_distance', 0), "Angle Distance": info.get('angle', 0), "Success": is_success, "Success Rate": sum(dones) / len(dones)})
+                                if info.get('force', 0) <= 50:      
+                                    wandb.run.summary["final_success_rate"] = sum(dones) / eps
+                            if episodes_collected >= num:
+                                    break
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train TD3 model with specified thresholds and action type.')
