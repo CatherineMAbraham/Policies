@@ -1,3 +1,4 @@
+from git import InvalidGitRepositoryError, Repo
 import numpy as np
 import pandas as pd
 import glob
@@ -8,7 +9,15 @@ import wandb
 ## For each young's modulus, run the 5 trajectories using the VTK file we have picked during mesh convergence testing. 
 # Then we want to work out the average trajectory on a 1-100% complete basis 
 # Work out the rmse and use an optimiser to find the best young's modulus for the average trajectory.
-
+def get_git_commit_hash(repo_path):
+    try:
+        repo = Repo(repo_path, search_parent_directories=True)
+        return repo.head.commit.hexsha
+    except InvalidGitRepositoryError:
+        print(f"Invalid Git repository at {repo_path}")
+    except Exception as e:
+        print(f"An error occurred while getting the commit hash: {e}")
+        return None
 def clean_force_spikes_rolling(data: np.ndarray, window: int = 7, threshold: float = 3.0) -> np.ndarray:
     """
     Detects and removes simulation explosions/spikes using a localized rolling Z-score
@@ -39,7 +48,7 @@ def normalize_force_trajectory(force_values: np.ndarray, completion_grid: np.nda
     if force_values.size == 0:
         return np.full(completion_grid.shape, np.nan)
 
-    clean_force = clean_force_spikes_rolling(force_values)
+    clean_force = force_values #clean_force_spikes_rolling(force_values)
     original_completion = np.linspace(0, 100, clean_force.size)
     return np.interp(completion_grid, original_completion, clean_force)
 
@@ -125,11 +134,22 @@ def objective_function(tuning_param):
 
 
 if __name__ == "__main__":
+    repo_paths = ["/users/cop21cma/FracSoftGym", "/home/catherine/FractureGym",'/home/catherineabraham/FractureSoftGym/']
+    for repo_path in repo_paths:
+                try:
+                        commit = get_git_commit_hash(repo_path)
+                        if commit is not None:
+                                print(f"Git commit hash for repository at {repo_path}: {commit}")
+                                if repo_path == "/users/cop21cma/FracSoftGym" or repo_path == "/home/catherineabraham/FractureSoftGym/":
+                                        render_mode = None
+                                        log =1 
+                                break
+                except Exception as e: print(f"Could not get commit hash for repository at {repo_path}: {e}")
     vtk_file = "rect0009.vtk"  # Example VTK file
     exp_forces, exp_std = get_expert()
     initial_guess = 1e5
     bounds = [(1e4, 1e7)]  # Example bounds for Young's modulus
-    wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation")
+    wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
     result = opt.minimize(objective_function, initial_guess, bounds=bounds, method='Nelder-Mead')
     if result.success:
         optimal_youngs_modulus = result.x[0]
