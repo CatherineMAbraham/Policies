@@ -16,7 +16,7 @@ import log_callback
 from success_callback import StopTrainingOnSuccessRate
 #from env_test2 import multiple_envs 
 #repo_path = "/home/catherine/FractureGym/fracturesurgeryenv"
-repo_paths = ["/users/cop21cma/FracSoftGym/fracturesurgeryenv", "/home/catherine/FractureGym/fracturesurgeryenv",'/home/catherine/FractureSoftGym/fracturesurgeryenv/']
+repo_paths = ["/users/cop21cma/FracSoftGym/", "/home/catherine/FractureGym/",'/home/catherine/FractureSoftGym/']
 
 
 def int_or_none(value: str):
@@ -92,7 +92,7 @@ def train(threshold_pos=0.001,
             commit = get_git_commit_hash(repo_path)
             if commit is not None:
                 print(f"Git commit hash for repository at {repo_path}: {commit}")
-                if repo_path == "/users/cop21cma/FracSoftGym/fracturesurgeryenv":
+                if repo_path == "/users/cop21cma/FracSoftGym/":
                     render_mode = None
                     log =1 
                 break
@@ -107,6 +107,7 @@ def train(threshold_pos=0.001,
     softtissue = softtissue
     num_springs = num_springs
     contact_type = contact_type
+    eval_seed = 42
     youngs_modulus_name = "None" if youngs_modulus is None else "{:.1E}".format(youngs_modulus)
     #print(youngs_modulus)
     #print(contact_type)
@@ -176,13 +177,13 @@ def train(threshold_pos=0.001,
             'softtissue':softtissue,
             'test': False,
             'render_mode': 'direct'}
-    eval_env=make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=eval_env_kwargs,vec_env_cls=SubprocVecEnv)
+    eval_env=make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed = eval_seed)
     
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     log_callback1 = log_callback.CustomCallback()
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
-                                                    max_no_improvement_evals=10, 
-                                                    success_threshold=0.9,  
+                                                    max_no_improvement_evals=1, 
+                                                    success_threshold=1,  
                                                     min_evals=1, verbose=1, 
                                                     model_name = model_name,
                                                     model_save_path=f'./best_models/{ran}')
@@ -222,7 +223,7 @@ def train(threshold_pos=0.001,
                 'start_pos' : 'home',
                 'render_mode': 'direct',
                 'test': True,}
-    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v1', n_envs=10, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=seed)
+    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v1', n_envs=10, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
     
     soft_eval_env = VecNormalize(soft_eval_env, norm_obs=True, norm_reward=False)
 
