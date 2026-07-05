@@ -130,8 +130,9 @@ def train(threshold_pos=0.001,
         'contact_type' :contact_type,
         'number_of_springs':num_springs,
         'softtissue':softtissue,
+        'youngs_modulus': youngs_modulus,
         'test': False,
-        'render_mode': 'direct'}
+        'render_mode': render_mode,}
         #"0.025 -0.04 0" rpy="0 1.57 0"
    
     env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
@@ -171,6 +172,7 @@ def train(threshold_pos=0.001,
             'maxforce': maxforce,
             'contact_type' :contact_type,
             'number_of_springs':num_springs,
+            'youngs_modulus': youngs_modulus,
             'softtissue':softtissue,
             'test': False,
             'render_mode': 'direct'}
@@ -218,7 +220,7 @@ def train(threshold_pos=0.001,
                 'maxforce': maxforce,
                 'contact_type' : 1,
                 'start_pos' : 'home',
-                'render_mode': 'human',
+                'render_mode': 'direct',
                 'test': True,}
     soft_eval_env = make_vec_env('gym_fracture:anklesurg-v1', n_envs=10, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=seed)
     
