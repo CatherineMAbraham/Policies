@@ -147,7 +147,7 @@ def run_simulation(youngs_modulus, vtk_file):
                     threshold_pos=0.0001,
                     threshold_ori=0.5,
                     maxforce=500,
-                    softtissue='soft',
+                    softtissue=None,
                     youngs_modulus=youngs_modulus,
                     vtk_file=vtk_file,
                     expert=expert,log=0)
