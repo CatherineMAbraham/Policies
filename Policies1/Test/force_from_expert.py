@@ -114,7 +114,7 @@ def multiple_envs(model_path,
         #while episodes_collected < num:
         complete = False
         step_force =[] 
-        print(experiment_action)
+        #print(experiment_action)
         #action = np.array([0,0.6,0,0,0,0,0])
         while complete == False:
                 i = 0

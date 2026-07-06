@@ -163,7 +163,7 @@ def objective_function(tuning_param):
     # Print with high decimal precision to track micro-movements
     print(f"Young's Modulus: {E_value:.2e} | Raw RMSE: {raw_rmse:.5f}N | Normalized Error: {nrmse * 100:.3f}%")
     
-   # wandb.log({"Young's Modulus": E_value, "Raw RMSE": raw_rmse, "Normalized Error (%)": nrmse * 100})
+    wandb.log({"Young's Modulus": E_value, "Raw RMSE": raw_rmse, "Normalized Error (%)": nrmse * 100})
     return nrmse
     #return rmse
 
@@ -184,7 +184,7 @@ if __name__ == "__main__":
     exp_forces, exp_std = get_expert()
     initial_guess = 1e6
     bounds = [(1e2, 1e10)]  # Example bounds for Young's modulus
-   # wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
+    wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
     result = opt.minimize(objective_function, initial_guess, bounds=bounds, method='Nelder-Mead')
     if result.success:
         optimal_youngs_modulus = result.x[0]
