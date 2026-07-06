@@ -95,7 +95,7 @@ def normalize_force_trajectory(force_values: np.ndarray, completion_grid: np.nda
 def get_expert():
     file_pattern = './experts2/*.npz'
     file_list = sorted(glob.glob(file_pattern))
-    file_list = ['./experts2/Expert_1_actions.npz', './experts2/Expert_2_actions.npz']
+    #file_list = ['./experts2/Expert_1_actions.npz', './experts2/Expert_2_actions.npz']
     #print(file_list)
     all_normalized_csvs = []  # Added initialization back
 
