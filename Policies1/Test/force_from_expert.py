@@ -82,12 +82,12 @@ def multiple_envs(model_path,
                 'obs_type': 'dict',
                 'distance_threshold_pos': threshold_pos,
                 'dr':1,
-                'dt': 0.001,
+                'dt': 1,
                 'action_type': 'euler',
                 'distance_threshold_ori': threshold_ori,
                 'start_pos' : 'home',
                 'render_mode': 'direct',
-                'softtissue': 'soft',
+                'softtissue': softtissue,
                 'vtk_file': vtk_file,
                 'number_of_springs': num_springs,
                 'youngs_modulus': youngs_modulus,
@@ -116,6 +116,7 @@ def multiple_envs(model_path,
         step_force =[] 
         #print(experiment_action)
         #action = np.array([0,0.6,0,0,0,0,0])
+        print(f"Episode Length: {episode_length}")
         while complete == False:
                 i = 0
                 restart_from_zero = False

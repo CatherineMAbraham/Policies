@@ -134,7 +134,7 @@ def get_expert():
         csv_mean = np.zeros_like(norm_time)
         csv_std = np.zeros_like(norm_time)
         print("Error: No ground truth NPZ reference data successfully parsed.")
-        
+    print(f"Mean Force Trajectory: {csv_mean}")
     return csv_mean, csv_std
 
 def run_simulation(youngs_modulus, vtk_file):
@@ -145,7 +145,7 @@ def run_simulation(youngs_modulus, vtk_file):
                     threshold_pos=0.0001,
                     threshold_ori=0.5,
                     maxforce=500,
-                    softtissue='soft',
+                    softtissue=None,
                     youngs_modulus=youngs_modulus,
                     vtk_file=vtk_file,
                     expert=expert,log=0)
@@ -161,7 +161,7 @@ def run_simulation(youngs_modulus, vtk_file):
         force_df = pd.DataFrame()
         force_mean = np.array([])
         force_std = np.array([])
-
+    print(f"Mean Force Trajectory for Young's Modulus {youngs_modulus}: {force_mean}")
     return force_df, force_mean, force_std
     
 def objective_function(tuning_param):
