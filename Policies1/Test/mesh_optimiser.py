@@ -6,6 +6,7 @@ import os
 from force_from_expert import multiple_envs
 import scipy.optimize as opt
 import wandb
+from scipy.signal import savgol_filter
 ## For each young's modulus, run the 5 trajectories using the VTK file we have picked during mesh convergence testing. 
 # Then we want to work out the average trajectory on a 1-100% complete basis 
 # Work out the rmse and use an optimiser to find the best young's modulus for the average trajectory.
@@ -48,7 +49,7 @@ def normalize_force_trajectory(force_values: np.ndarray, completion_grid: np.nda
     if force_values.size == 0:
         return np.full(completion_grid.shape, np.nan)
 
-    clean_force = force_values #clean_force_spikes_rolling(force_values)
+    clean_force = savgol_filter(force_values, window_length=15, polyorder=2)#clean_force_spikes_rolling(force_values)
     original_completion = np.linspace(0, 100, clean_force.size)
     return np.interp(completion_grid, original_completion, clean_force)
 
