@@ -124,13 +124,23 @@ def run_simulation(youngs_modulus, vtk_file):
 def objective_function(tuning_param):
     """Calculates the error between simulation and experiment."""
      
-    _,force_mean,_ = run_simulation(tuning_param,vtk_file)
-    #print(f"Young's Modulus: {tuning_param:.2e}, Force Mean: {force_mean}")
-    # Calculate RMSE
-    rmse = np.sqrt(np.mean((exp_forces - force_mean) ** 2))
-    print(f"Young's Modulus: {tuning_param}, RMSE: {rmse}")
-    wandb.log({"Young's Modulus": tuning_param, "RMSE": rmse})
-    return rmse
+    # _,force_mean,_ = run_simulation(tuning_param,vtk_file)
+    # #print(f"Young's Modulus: {tuning_param:.2e}, Force Mean: {force_mean}")
+    # # Calculate RMSE
+    # rmse = np.sqrt(np.mean((exp_forces - force_mean) ** 2))
+    # print(f"Young's Modulus: {tuning_param}, RMSE: {rmse}")
+    # wandb.log({"Young's Modulus": tuning_param, "RMSE": rmse})
+
+    _, force_mean, _ = run_simulation(tuning_param, vtk_file)
+    
+    sim_impulse = np.trapezoid(force_mean, norm_time)
+    exp_impulse = np.trapezoid(exp_forces, norm_time)
+    
+    # The objective is to bring the absolute energy difference down to zero
+    energy_error = np.abs(sim_impulse - exp_impulse)
+    wandb.log({"Young's Modulus": tuning_param, "energy_error": energy_error})
+    return energy_error
+    #return rmse
 
 
 if __name__ == "__main__":
@@ -147,8 +157,8 @@ if __name__ == "__main__":
                 except Exception as e: print(f"Could not get commit hash for repository at {repo_path}: {e}")
     vtk_file = "rect0009.vtk"  # Example VTK file
     exp_forces, exp_std = get_expert()
-    initial_guess = 1e9
-    bounds = [(1e8, 1e10)]  # Example bounds for Young's modulus
+    initial_guess = 1e6
+    bounds = [(1e6, 1e10)]  # Example bounds for Young's modulus
     wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
     result = opt.minimize(objective_function, initial_guess, bounds=bounds, method='Nelder-Mead')
     if result.success:
