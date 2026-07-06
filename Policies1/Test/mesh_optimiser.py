@@ -131,15 +131,40 @@ def objective_function(tuning_param):
     # print(f"Young's Modulus: {tuning_param}, RMSE: {rmse}")
     # wandb.log({"Young's Modulus": tuning_param, "RMSE": rmse})
 
-    _, force_mean, _ = run_simulation(tuning_param, vtk_file)
+    # _, force_mean, _ = run_simulation(tuning_param, vtk_file)
     
-    sim_impulse = np.trapezoid(force_mean, norm_time)
-    exp_impulse = np.trapezoid(exp_forces, norm_time)
+    # sim_impulse = np.trapezoid(force_mean, norm_time)
+    # exp_impulse = np.trapezoid(exp_forces, norm_time)
     
-    # The objective is to bring the absolute energy difference down to zero
-    energy_error = np.abs(sim_impulse - exp_impulse)
-    wandb.log({"Young's Modulus": tuning_param, "energy_error": energy_error})
-    return energy_error
+    # # The objective is to bring the absolute energy difference down to zero
+    # energy_error = np.abs(sim_impulse - exp_impulse)
+    # wandb.log({"Young's Modulus": tuning_param, "energy_error": energy_error})
+    # return energy_error
+    """Calculates the normalized percentage error between simulation and experiment."""
+    # Ensure tuning_param is a clean float scalar
+    E_value = float(tuning_param[0]) if isinstance(tuning_param, (list, np.ndarray)) else float(tuning_param)
+     
+    _, force_mean, _ = run_simulation(E_value, vtk_file)
+    
+    # 1. Calculate raw localized squared errors
+    squared_errors = (exp_forces - force_mean) ** 2
+    raw_rmse = np.sqrt(np.mean(squared_errors))
+    
+    # 2. Extract the dynamic range of your surgeon's data (Peak-to-Peak)
+    exp_range = np.max(exp_forces) - np.min(exp_forces)
+    
+    # Avoid zero division safety catch
+    if exp_range == 0:
+        exp_range = 1e-6
+        
+    # 3. Normalize the error to turn it into a relative percentage
+    nrmse = raw_rmse / exp_range
+    
+    # Print with high decimal precision to track micro-movements
+    print(f"Young's Modulus: {E_value:.2e} | Raw RMSE: {raw_rmse:.5f}N | Normalized Error: {nrmse * 100:.3f}%")
+    
+    wandb.log({"Young's Modulus": E_value, "Raw RMSE": raw_rmse, "Normalized Error (%)": nrmse * 100})
+    return nrmse
     #return rmse
 
 
@@ -157,7 +182,7 @@ if __name__ == "__main__":
                 except Exception as e: print(f"Could not get commit hash for repository at {repo_path}: {e}")
     vtk_file = "rect0009.vtk"  # Example VTK file
     exp_forces, exp_std = get_expert()
-    initial_guess = 1e2
+    initial_guess = 1e6
     bounds = [(1e2, 1e10)]  # Example bounds for Young's modulus
     wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
     result = opt.minimize(objective_function, initial_guess, bounds=bounds, method='Nelder-Mead')
