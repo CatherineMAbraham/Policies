@@ -182,7 +182,7 @@ if __name__ == "__main__":
                 except Exception as e: print(f"Could not get commit hash for repository at {repo_path}: {e}")
     vtk_file = "rect0009.vtk"  # Example VTK file
     exp_forces, exp_std = get_expert()
-    initial_guess = 1e6
+    initial_guess = 1e2
     bounds = [(1e2, 1e10)]  # Example bounds for Young's modulus
     wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
     result = opt.minimize(objective_function, initial_guess, bounds=bounds, method='Nelder-Mead')
