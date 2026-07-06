@@ -52,47 +52,90 @@ def normalize_force_trajectory(force_values: np.ndarray, completion_grid: np.nda
     original_completion = np.linspace(0, 100, clean_force.size)
     return np.interp(completion_grid, original_completion, clean_force)
 
+# def get_expert():
+#     file_pattern = './Sanjeev/*.csv'
+#     file_list = sorted(glob.glob(file_pattern))
+#     all_normalized_csvs = []
+
+#     for file in file_list:
+#         try:
+#             df_raw = pd.read_csv(file)
+#             suffix = os.path.splitext(os.path.basename(file))[0]
+            
+#             cols_to_keep = ['.fX.data', '.fY.data', '.fZ.data']
+#             for col in cols_to_keep:
+#                 df_raw[col] = pd.to_numeric(df_raw[col], errors='coerce')
+            
+#             df_clean = df_raw[cols_to_keep].dropna()
+            
+#             f_x = df_clean['.fX.data'].values
+#             f_y = df_clean['.fY.data'].values
+#             f_z = df_clean['.fZ.data'].values
+#             resultant = np.linalg.norm(np.column_stack([f_x, f_y, f_z]), axis=1)
+            
+#             original_indices = np.linspace(0, 100, len(resultant))
+#             res_normalized = np.interp(norm_time, original_indices, resultant)
+            
+#             all_normalized_csvs.append(pd.Series(res_normalized, name=f'CSV_{suffix}'))
+            
+#         except Exception as e:
+#             print(f"Error processing local CSV file {file}: {e}")
+
+#     if all_normalized_csvs:
+#         csv_df = pd.concat(all_normalized_csvs, axis=1)
+#         csv_mean = csv_df.mean(axis=1).values
+#         csv_std = csv_df.std(axis=1).values
+#         ##Impulse for experimental data (area under the curve)
+#         impulse_csv = np.trapezoid(csv_mean, norm_time)
+#         print(f'Impulse for Experimental Reference: {impulse_csv:.2f}')
+#     else:
+#         csv_df = pd.DataFrame()
+#         print("Error: No ground truth CSV reference data successfully parsed.")
+#     return csv_mean, csv_std
 def get_expert():
-    file_pattern = './Sanjeev/*.csv'
+    file_pattern = './experts2/*.npz'
     file_list = sorted(glob.glob(file_pattern))
-    all_normalized_csvs = []
+    all_normalized_csvs = []  # Added initialization back
 
     for file in file_list:
         try:
-            df_raw = pd.read_csv(file)
+            with np.load(file, allow_pickle=True) as data:
+                # npz archives save arrays as dictionary keys.
+                # If you saved it as 'acts' inside your data pipeline, we pull it here:
+                if 'acts' in data:
+                    actions_matrix = data['acts']
+                else:
+                    # Fallback to the first available key if named differently
+                    first_key = data.files[0]
+                    actions_matrix = data[first_key]
+            
+            # The resultant force is stored in the last column (index 6)
+            # Layout: [dx, dy, dz, drotx, droty, drotz, force_resultant]
+            resultant = actions_matrix[:, 6]
+            
             suffix = os.path.splitext(os.path.basename(file))[0]
-            
-            cols_to_keep = ['.fX.data', '.fY.data', '.fZ.data']
-            for col in cols_to_keep:
-                df_raw[col] = pd.to_numeric(df_raw[col], errors='coerce')
-            
-            df_clean = df_raw[cols_to_keep].dropna()
-            
-            f_x = df_clean['.fX.data'].values
-            f_y = df_clean['.fY.data'].values
-            f_z = df_clean['.fZ.data'].values
-            resultant = np.linalg.norm(np.column_stack([f_x, f_y, f_z]), axis=1)
-            
             original_indices = np.linspace(0, 100, len(resultant))
             res_normalized = np.interp(norm_time, original_indices, resultant)
             
-            all_normalized_csvs.append(pd.Series(res_normalized, name=f'CSV_{suffix}'))
+            all_normalized_csvs.append(pd.Series(res_normalized, name=f'Expert_{suffix}'))
             
         except Exception as e:
-            print(f"Error processing local CSV file {file}: {e}")
+            print(f"Error processing local NPZ file {file}: {e}")
 
     if all_normalized_csvs:
         csv_df = pd.concat(all_normalized_csvs, axis=1)
         csv_mean = csv_df.mean(axis=1).values
         csv_std = csv_df.std(axis=1).values
-        ##Impulse for experimental data (area under the curve)
+        
+        # Calculate Reference Impulse (area under curve)
         impulse_csv = np.trapezoid(csv_mean, norm_time)
         print(f'Impulse for Experimental Reference: {impulse_csv:.2f}')
     else:
-        csv_df = pd.DataFrame()
-        print("Error: No ground truth CSV reference data successfully parsed.")
+        csv_mean = np.zeros_like(norm_time)
+        csv_std = np.zeros_like(norm_time)
+        print("Error: No ground truth NPZ reference data successfully parsed.")
+        
     return csv_mean, csv_std
-
 
 def run_simulation(youngs_modulus, vtk_file):
     # Run the simulation for each expert trajectory
@@ -163,7 +206,7 @@ def objective_function(tuning_param):
     # Print with high decimal precision to track micro-movements
     print(f"Young's Modulus: {E_value:.2e} | Raw RMSE: {raw_rmse:.5f}N | Normalized Error: {nrmse * 100:.3f}%")
     
-    wandb.log({"Young's Modulus": E_value, "Raw RMSE": raw_rmse, "Normalized Error (%)": nrmse * 100})
+    #wandb.log({"Young's Modulus": E_value, "Raw RMSE": raw_rmse, "Normalized Error (%)": nrmse * 100})
     return nrmse
     #return rmse
 
@@ -184,7 +227,7 @@ if __name__ == "__main__":
     exp_forces, exp_std = get_expert()
     initial_guess = 1e6
     bounds = [(1e2, 1e10)]  # Example bounds for Young's modulus
-    wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
+    #wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
     result = opt.minimize(objective_function, initial_guess, bounds=bounds, method='Nelder-Mead')
     if result.success:
         optimal_youngs_modulus = result.x[0]
