@@ -27,7 +27,7 @@ def get_git_commit_hash(repo_path):
 def multiple_envs(model_path,
                   threshold_pos=0.001, 
                   threshold_ori=0.08,
-                  maxforce=5,
+                  maxforce=50,
                   softtissue='soft',
                   youngs_modulus=1e7,
                   num_springs=3,
@@ -53,7 +53,7 @@ def multiple_envs(model_path,
                 except Exception as e: print(f"Could not get commit hash for repository at {repo_path}: {e}")
         current_dir = os.getcwd()
         #trajectory_path = os.path.join(current_dir, f"/Experts/{expert}.npz")
-        trajectory_path =  f"./Experts/{expert}.npz"
+        trajectory_path =  f"./experts2/{expert}.npz"
         with np.load(trajectory_path, allow_pickle=True) as expert:
                 if 'acts' not in expert:
                         raise KeyError(f"Expected 'acts' in trajectory file {trajectory_path}")
@@ -81,13 +81,13 @@ def multiple_envs(model_path,
                 'horizon': 'variable',
                 'obs_type': 'dict',
                 'distance_threshold_pos': threshold_pos,
-                'dr':0.01,
+                'dr':1,
                 'dt': 0.001,
                 'action_type': 'euler',
                 'distance_threshold_ori': threshold_ori,
                 'start_pos' : 'home',
                 'render_mode': 'direct',
-                'softtissue': softtissue,
+                'softtissue': 'soft',
                 'vtk_file': vtk_file,
                 'number_of_springs': num_springs,
                 'youngs_modulus': youngs_modulus,
@@ -114,17 +114,21 @@ def multiple_envs(model_path,
         #while episodes_collected < num:
         complete = False
         step_force =[] 
-        action = np.array([0,0.6,0,0,0,0,0])
+        print(experiment_action)
+        #action = np.array([0,0.6,0,0,0,0,0])
         while complete == False:
                 i = 0
                 restart_from_zero = False
                 while i < len(experiment_action):
                         #print(episode_length)
-                        action_pos = experiment_action[i][0:3]/1000
+                        
+                        action_pos = experiment_action[i][0:3]#/1000
                         action_ori = experiment_action[i][3:6]
-                        # action_ori= p.getQuaternionFromEuler(np.deg2rad(action_ori))
+                        
+                        action_ori= np.deg2rad(action_ori)
                         #print(f"Step {i+1}/{episode_length}, Action: {action}")
                         action = np.concatenate([action_pos, action_ori])#action#model.predict(obs)[0]  # 
+                        #print(action)
                         if action.ndim == 1:
                                 action = action[None, :]
                         #print(action)
@@ -184,6 +188,7 @@ def multiple_envs(model_path,
                                 continue
                 if restart_from_zero == False:
                         complete = True
+        p.disconnect()
         # print(force)
         # print(np.mean(force) if force else np.nan)
         # print(np.max(force) if force else np.nan)

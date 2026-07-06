@@ -101,7 +101,7 @@ def run_simulation(youngs_modulus, vtk_file):
         step_force = multiple_envs(None,
                     threshold_pos=0.0001,
                     threshold_ori=0.5,
-                    maxforce=5,
+                    maxforce=500,
                     softtissue='soft',
                     youngs_modulus=youngs_modulus,
                     vtk_file=vtk_file,
@@ -163,7 +163,7 @@ def objective_function(tuning_param):
     # Print with high decimal precision to track micro-movements
     print(f"Young's Modulus: {E_value:.2e} | Raw RMSE: {raw_rmse:.5f}N | Normalized Error: {nrmse * 100:.3f}%")
     
-    wandb.log({"Young's Modulus": E_value, "Raw RMSE": raw_rmse, "Normalized Error (%)": nrmse * 100})
+   # wandb.log({"Young's Modulus": E_value, "Raw RMSE": raw_rmse, "Normalized Error (%)": nrmse * 100})
     return nrmse
     #return rmse
 
@@ -182,9 +182,9 @@ if __name__ == "__main__":
                 except Exception as e: print(f"Could not get commit hash for repository at {repo_path}: {e}")
     vtk_file = "rect0009.vtk"  # Example VTK file
     exp_forces, exp_std = get_expert()
-    initial_guess = 1e2
+    initial_guess = 1e6
     bounds = [(1e2, 1e10)]  # Example bounds for Young's modulus
-    wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
+   # wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
     result = opt.minimize(objective_function, initial_guess, bounds=bounds, method='Nelder-Mead')
     if result.success:
         optimal_youngs_modulus = result.x[0]
