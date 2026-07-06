@@ -168,6 +168,7 @@ def multiple_envs(model_path,
 
                                 if step_info.get("truncated") and step_info.get("force_fail", 0) == True:
                                         print("Restarting replay from action 0 after excessive force termination.")
+                                        step_force = []
                                         ## I want to remove the logging and start a new wandb run for this new episode, so that the data is not mixed with the previous one.
                                         # if log == 1:
                                         #         wandb.finish()

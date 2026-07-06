@@ -95,6 +95,8 @@ def normalize_force_trajectory(force_values: np.ndarray, completion_grid: np.nda
 def get_expert():
     file_pattern = './experts2/*.npz'
     file_list = sorted(glob.glob(file_pattern))
+    file_list = ['./experts2/Expert_1_actions.npz', './experts2/Expert_2_actions.npz']
+    #print(file_list)
     all_normalized_csvs = []  # Added initialization back
 
     for file in file_list:
@@ -145,7 +147,7 @@ def run_simulation(youngs_modulus, vtk_file):
                     threshold_pos=0.0001,
                     threshold_ori=0.5,
                     maxforce=500,
-                    softtissue=None,
+                    softtissue='soft',
                     youngs_modulus=youngs_modulus,
                     vtk_file=vtk_file,
                     expert=expert,log=0)
@@ -212,7 +214,7 @@ def objective_function(tuning_param):
 
 
 if __name__ == "__main__":
-    repo_paths = ["/users/cop21cma/FracSoftGym", "/home/catherine/FractureGym",'/home/catherineabraham/FractureSoftGym/']
+    repo_paths = ["/users/cop21cma/FracSoftGym", "/home/catherine/FractureGym"]#,'/home/catherineabraham/FractureSoftGym/']
     for repo_path in repo_paths:
                 try:
                         commit = get_git_commit_hash(repo_path)
