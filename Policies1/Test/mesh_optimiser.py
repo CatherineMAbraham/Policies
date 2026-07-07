@@ -188,29 +188,40 @@ def objective_function(tuning_param):
     # return energy_error
     """Calculates the normalized percentage error between simulation and experiment."""
     # Ensure tuning_param is a clean float scalar
-    E_value = float(tuning_param[0]) if isinstance(tuning_param, (list, np.ndarray)) else float(tuning_param)
+    # E_value = float(tuning_param[0]) if isinstance(tuning_param, (list, np.ndarray)) else float(tuning_param)
      
+    # _, force_mean, _ = run_simulation(E_value, vtk_file)
+    
+    # # 1. Calculate raw localized squared errors
+    # squared_errors = (exp_forces - force_mean) ** 2
+    # raw_rmse = np.sqrt(np.mean(squared_errors))
+    
+    # # 2. Extract the dynamic range of your surgeon's data (Peak-to-Peak)
+    # exp_range = np.max(exp_forces) - np.min(exp_forces)
+    
+    # # Avoid zero division safety catch
+    # if exp_range == 0:
+    #     exp_range = 1e-6
+        
+    # # 3. Normalize the error to turn it into a relative percentage
+    # nrmse = raw_rmse / exp_range
+    
+    # # Print with high decimal precision to track micro-movements
+    # print(f"Young's Modulus: {E_value:.2e} | Raw RMSE: {raw_rmse:.5f}N | Normalized Error: {nrmse * 100:.3f}%")
+    E_value = float(tuning_param[0]) if isinstance(tuning_param, (list, np.ndarray)) else float(tuning_param)
     _, force_mean, _ = run_simulation(E_value, vtk_file)
     
-    # 1. Calculate raw localized squared errors
-    squared_errors = (exp_forces - force_mean) ** 2
-    raw_rmse = np.sqrt(np.mean(squared_errors))
+    # Sort arrays and grab the top 5 highest force values (approx 5% of 101 steps)
+    sim_top_peaks = np.sort(force_mean)[-5:]
+    exp_top_peaks = np.sort(exp_forces)[-5:]
     
-    # 2. Extract the dynamic range of your surgeon's data (Peak-to-Peak)
-    exp_range = np.max(exp_forces) - np.min(exp_forces)
+    # Calculate Mean Absolute Error strictly for the highest loading states
+    peak_mae = np.mean(np.abs(exp_top_peaks - sim_top_peaks))
+    wandb.log({"Young's Modulus": E_value, "Peak-Zone MAE": peak_mae})
+    print(f"E: {E_value:.2e} | Peak-Zone MAE: {peak_mae:.4f}N")
+    return peak_mae
     
-    # Avoid zero division safety catch
-    if exp_range == 0:
-        exp_range = 1e-6
-        
-    # 3. Normalize the error to turn it into a relative percentage
-    nrmse = raw_rmse / exp_range
     
-    # Print with high decimal precision to track micro-movements
-    print(f"Young's Modulus: {E_value:.2e} | Raw RMSE: {raw_rmse:.5f}N | Normalized Error: {nrmse * 100:.3f}%")
-    
-    wandb.log({"Young's Modulus": E_value, "Raw RMSE": raw_rmse, "Normalized Error (%)": nrmse * 100})
-    return nrmse
     #return rmse
 
 
