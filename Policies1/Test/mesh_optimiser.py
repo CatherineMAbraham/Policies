@@ -220,7 +220,7 @@ def objective_function(tuning_param,log=1):
     ## Percentage error relative to the peak of the experimental data
     peak_percentage_error = (peak_mae / np.max(exp_forces)) * 100
     if log == 1:
-        wandb.log({"Young's Modulus": E_value, "Peak-Zone MAE": peak_mae})
+        wandb.log({"Young's Modulus": E_value, "Peak-Zone MAE": peak_mae, "Peak-Zone % Error": peak_percentage_error})
     print(f"E: {E_value:.2e} | Peak-Zone MAE: {peak_mae:.4f}N | Peak-Zone % Error: {peak_percentage_error:.3f}%")
     return peak_percentage_error
     
