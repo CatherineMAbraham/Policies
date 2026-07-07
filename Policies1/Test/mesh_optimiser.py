@@ -167,7 +167,7 @@ def run_simulation(youngs_modulus, vtk_file):
     print(f"Mean Force Trajectory for Young's Modulus {youngs_modulus}: {force_mean}")
     return force_df, force_mean, force_std
     
-def objective_function(tuning_param):
+def objective_function(tuning_param,log=1):
     """Calculates the error between simulation and experiment."""
      
     # _,force_mean,_ = run_simulation(tuning_param,vtk_file)
