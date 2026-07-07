@@ -217,16 +217,18 @@ def objective_function(tuning_param):
     
     # Calculate Mean Absolute Error strictly for the highest loading states
     peak_mae = np.mean(np.abs(exp_top_peaks - sim_top_peaks))
-    wandb.log({"Young's Modulus": E_value, "Peak-Zone MAE": peak_mae})
-    print(f"E: {E_value:.2e} | Peak-Zone MAE: {peak_mae:.4f}N")
-    return peak_mae
+    ## Percentage error relative to the peak of the experimental data
+    peak_percentage_error = (peak_mae / np.max(exp_forces)) * 100
+    #wandb.log({"Young's Modulus": E_value, "Peak-Zone MAE": peak_mae})
+    print(f"E: {E_value:.2e} | Peak-Zone MAE: {peak_mae:.4f}N | Peak-Zone % Error: {peak_percentage_error:.3f}%")
+    return peak_percentage_error
     
     
     #return rmse
 
 
 if __name__ == "__main__":
-    repo_paths = ["/users/cop21cma/FracSoftGym", "/home/catherine/FractureGym"]#,'/home/catherineabraham/FractureSoftGym/']
+    repo_paths = ["/users/cop21cma/FracSoftGym", "/home/catherine/FractureGym",'/home/catherineabraham/FractureSoftGym/']
     for repo_path in repo_paths:
                 try:
                         commit = get_git_commit_hash(repo_path)
@@ -241,7 +243,7 @@ if __name__ == "__main__":
     exp_forces, exp_std = get_expert()
     initial_guess = 1e6
     bounds = [(1e2, 1e10)]  # Example bounds for Young's modulus
-    wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
+    #wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
     result = opt.minimize(objective_function, initial_guess, bounds=bounds, method='Nelder-Mead')
     if result.success:
         optimal_youngs_modulus = result.x[0]
