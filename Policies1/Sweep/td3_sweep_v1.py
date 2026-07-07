@@ -160,7 +160,7 @@ def train(threshold_pos=0.001,
                                                                 success_threshold=1)
     
     eval_callback = EvalCallback(eval_env,  eval_freq=10000,
-                                 deterministic=True, n_eval_episodes=20,callback_after_eval=success_callback),
+                                 deterministic=True, n_eval_episodes=20,callback_after_eval=success_callback)
                                 
     model.learn(500_000, callback=eval_callback)
     #save model name in log file
