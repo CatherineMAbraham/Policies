@@ -107,7 +107,7 @@ def train(threshold_pos=0.001,
         'render_mode': None}
         #"0.025 -0.04 0" rpy="0 1.57 0"
    
-    env = make_vec_env('gym_fracture:softsurg-v1', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed= seed)
+    env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed= seed)
     env = VecNormalize(env, norm_obs=True, norm_reward=False)
     if action_noise == "normal":
         action_noise = NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), 
@@ -153,7 +153,7 @@ def train(threshold_pos=0.001,
             'test': False,
             'youngs_modulus': youngs_modulus,
             'render_mode': None}
-    eval_env=make_vec_env('gym_fracture:softsurg-v1', env_kwargs=eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed = eval_seed)
+    eval_env=make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed = eval_seed)
     
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, max_no_improvement_evals=1,
