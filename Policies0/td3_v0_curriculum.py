@@ -85,8 +85,8 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     #     tag = 'precision'
     tag = 'curriculum'
     
-    if log == 1:
-        wandb.init(project="Chapter1-Results", tags=[tag], name = (f'{model_name}'),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
+    # if log == 1:
+    #     wandb.init(project="Chapter1-Results", tags=[tag], name = (f'{model_name}'),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     
     env_kwargs = {
         'reward_type': 'sparse',
@@ -143,7 +143,9 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
     current_threshold_pos = threshold_pos
     current_threshold_ori = threshold_ori
 
-    for i in range(4):
+    for i in range(3):
+        if log == 1:
+            wandb.init(project="Chapter1-Results", tags=[tag], name = (f'{model_name}'),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)
         print(f"\n--- Starting Curriculum Stage {i+1}/10 ---")
         print(f"Current Thresholds -> Pos (mm): {current_threshold_pos*1000:.5f}, Ori (rad): {current_threshold_ori:.5f}")
         for e in env.envs:
@@ -154,7 +156,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
         eval_env.set_attr('distance_threshold_ori', current_threshold_ori)
     ## Stop training callback based on success rate, model_save_path None and just setting it to save any best model in eval 
         success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
-                                                        max_no_improvement_evals=5, 
+                                                        max_no_improvement_evals=1, 
                                                         success_threshold=1,  
                                                         min_evals=1, verbose=1, 
                                                         model_name = model_name,
@@ -163,7 +165,7 @@ def train(threshold_pos=0.001, threshold_ori=np.deg2rad(6), action_type='pos_onl
                                     deterministic=True, n_eval_episodes=100,callback_after_eval=success_callback,
                                     verbose=1)
 
-        model.learn(5_000_000, callback=eval_callback,reset_num_timesteps=False)
+        model.learn(5_000_000, callback=eval_callback,reset_num_timesteps=True, tb_log_name=f'{model_name}_stage_{i+1}')
     
         current_threshold_pos, current_threshold_ori = next_thresholds(current_threshold_pos, current_threshold_ori)
         wandb.log({"current_threshold_pos": current_threshold_pos, "current_threshold_ori": current_threshold_ori})
