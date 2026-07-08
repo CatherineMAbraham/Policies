@@ -167,7 +167,7 @@ def run_simulation(youngs_modulus, vtk_file):
     print(f"Mean Force Trajectory for Young's Modulus {youngs_modulus}: {force_mean}")
     return force_df, force_mean, force_std
     
-def objective_function(tuning_param,log=1):
+def objective_function(tuning_param, exp_forces, log=1):
     """Calculates the error between simulation and experiment."""
      
     # _,force_mean,_ = run_simulation(tuning_param,vtk_file)
@@ -244,21 +244,21 @@ if __name__ == "__main__":
     exp_forces, exp_std = get_expert()
     # initial_guess = 1e6
     # bounds = [(1e2, 1e10)]  # Example bounds for Young's modulus
-    # if log == 1:
-    #     wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
+    # 
     # result = opt.minimize(objective_function, initial_guess, bounds=bounds, method='Nelder-Mead')
     # if result.success:
     #     optimal_youngs_modulus = result.x[0]
     #     print(f"Optimal Young's Modulus: {optimal_youngs_modulus:.2e}")
     # else: 
     #     print("Optimization failed:", result.message)
-
+    if log == 1:
+        wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
     wide_search_space = [1e5, 5e5, 1e6, 2e6, 5e6,1e7,5e7]
     
     sweep_results = {}
     print("--- Starting Global Coarse Sweep ---")
     for E_test in wide_search_space:
-        error = objective_function(E_test)
+        error = objective_function(E_test, exp_forces, log=1)
         sweep_results[E_test] = error
         print(f"Modulus: {E_test:.1e} | Global Peak Error: {error:.3f}%")
         
