@@ -242,13 +242,26 @@ if __name__ == "__main__":
                 except Exception as e: print(f"Could not get commit hash for repository at {repo_path}: {e}")
     vtk_file = "rect0009.vtk"  # Example VTK file
     exp_forces, exp_std = get_expert()
-    initial_guess = 1e6
-    bounds = [(1e2, 1e10)]  # Example bounds for Young's modulus
-    if log == 1:
-        wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
-    result = opt.minimize(objective_function, initial_guess, bounds=bounds, method='Nelder-Mead')
-    if result.success:
-        optimal_youngs_modulus = result.x[0]
-        print(f"Optimal Young's Modulus: {optimal_youngs_modulus:.2e}")
-    else: 
-        print("Optimization failed:", result.message)
+    # initial_guess = 1e6
+    # bounds = [(1e2, 1e10)]  # Example bounds for Young's modulus
+    # if log == 1:
+    #     wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
+    # result = opt.minimize(objective_function, initial_guess, bounds=bounds, method='Nelder-Mead')
+    # if result.success:
+    #     optimal_youngs_modulus = result.x[0]
+    #     print(f"Optimal Young's Modulus: {optimal_youngs_modulus:.2e}")
+    # else: 
+    #     print("Optimization failed:", result.message)
+
+    wide_search_space = [1e5, 5e5, 1e6, 2e6, 5e6,1e7,5e7]
+    
+    sweep_results = {}
+    print("--- Starting Global Coarse Sweep ---")
+    for E_test in wide_search_space:
+        error = objective_function(E_test)
+        sweep_results[E_test] = error
+        print(f"Modulus: {E_test:.1e} | Global Peak Error: {error:.3f}%")
+        
+    # Find which zone gave you the absolute lowest baseline error
+    best_zone = min(sweep_results, key=sweep_results.get)
+    print(f"\nBest structural zone identified near: {best_zone:.1e}")
