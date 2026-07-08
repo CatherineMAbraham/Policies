@@ -84,6 +84,7 @@ def train(threshold_pos=0.001,
           contact_type="None",
           ran='1',
           youngs_modulus=1000000,
+          vtkfile='rect0009.vtk',
           log=True,
           seed=0):
     render_mode = render_mode
@@ -131,8 +132,9 @@ def train(threshold_pos=0.001,
         'contact_type' :contact_type,
         'number_of_springs':num_springs,
         'softtissue':softtissue,
+        'vtk_file': vtkfile,
         'youngs_modulus': youngs_modulus,
-        'test': False,
+        'test': True,
         'render_mode': render_mode,}
         #"0.025 -0.04 0" rpy="0 1.57 0"
    
@@ -213,13 +215,13 @@ def train(threshold_pos=0.001,
                 'dt': 0.001,
                 'dr':0.01,
                 'distance_threshold_ori': threshold_ori,
-                'softtissue': softtissue,
+                'softtissue': 'soft',
                 'number_of_springs': num_springs,
-                'youngs_modulus': youngs_modulus,
+                'youngs_modulus': 1e6,
                 'vtk_file': vtk_file,
                 'action_type': 'euler',
                 'maxforce': maxforce,
-                'contact_type' : 1,
+                'contact_type' : 0,
                 'start_pos' : 'home',
                 'render_mode': 'direct',
                 'test': True,}
@@ -306,6 +308,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_springs', type=int, default=3, help='Number of springs for the soft tissue.')
     parser.add_argument('--contact_type', type=int, default=0, help='Type of contact for the environment.')
     parser.add_argument('--youngs_modulus', type=int_or_none, default=1e7, help='Young\'s modulus for the soft tissue. Use an integer or None')
+    parser.add_argument('--vtkfile', type=str, default='rect0009.vtk', help='VTK file for the soft tissue model.')
     parser.add_argument('--ran', type=str, default="1", help='Random seed for the run.')
     parser.add_argument('--log', type=int, default=0, help='Whether to log the training run to W&B.')
     parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducibility.')
@@ -321,4 +324,5 @@ if __name__ == "__main__":
           ran=args.ran,
           log=args.log,
           youngs_modulus=args.youngs_modulus,
+          vtkfile=args.vtkfile,
           seed=args.seed)
