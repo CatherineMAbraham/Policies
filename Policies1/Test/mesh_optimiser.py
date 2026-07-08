@@ -230,6 +230,7 @@ def objective_function(tuning_param, exp_forces, log=1):
 
 if __name__ == "__main__":
     repo_paths = ["/users/cop21cma/FracSoftGym", "/home/catherine/FractureGym",'/home/catherineabraham/FractureSoftGym/']
+    log =0 
     for repo_path in repo_paths:
                 try:
                         commit = get_git_commit_hash(repo_path)
@@ -253,11 +254,11 @@ if __name__ == "__main__":
     #     print("Optimization failed:", result.message)
     if log == 1:
         wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
-    wide_search_space = [1e5, 5e5, 1e6, 2e6, 5e6,1e7,5e7]
-    
+    wide_search_space = [1e6, 5e5, 1e6, 2e6, 5e6,1e7,5e7]
+    narrow_search_space = np.linspace(1e6, 2e6, 10)
     sweep_results = {}
     print("--- Starting Global Coarse Sweep ---")
-    for E_test in wide_search_space:
+    for E_test in narrow_search_space:
         error = objective_function(E_test, exp_forces, log=1)
         sweep_results[E_test] = error
         print(f"Modulus: {E_test:.1e} | Global Peak Error: {error:.3f}%")
