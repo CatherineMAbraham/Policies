@@ -106,7 +106,7 @@ def multiple_envs(model_path,
                 n_envs=num_envs, 
                 seed=seed,
                 wrapper_class=None,
-                env_kwargs_list=env_kwargs_list # Pass your custom per-env lists here
+                env_kwargs=env_kwargs_list # Pass your custom per-env lists here
         )
         env = VecNormalize(env, norm_obs=True, norm_reward=False)
         env = VecNormalize(env, norm_obs=True, norm_reward=False)
