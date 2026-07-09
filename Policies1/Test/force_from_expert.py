@@ -71,27 +71,44 @@ def multiple_envs(model_path,
         else:
                 softtissue = 'soft'
                 
-        env_kwargs = {
-                'reward_type': 'sparse',
-                'max_steps': episode_length,
-                'horizon': 'variable',
-                'obs_type': 'dict',
-                'distance_threshold_pos': threshold_pos,
-                'dr': 1,
-                'dt': 1,
-                'action_type': 'euler',
-                'distance_threshold_ori': threshold_ori,
-                'start_pos': 'home',
-                'render_mode': render_mode,
-                'softtissue': softtissue,
-                'vtk_file': vtk_file,
-                'number_of_springs': num_springs,
-                'youngs_modulus': youngs_modulus,
-                'maxforce': maxforce,
-                'contact_type': 0,
-                'test': True}
+        env_kwargs_list = []
+        for env_idx in range(num_envs):
+                expert_name = experts[env_idx]
+                single_ep_length = experiment_action[expert_name].shape[0] # Extracted integer
+                
+                individual_kwargs = {
+                        'reward_type': 'sparse',
+                        'max_steps': single_ep_length, # <-- Now a single clean integer per env!
+                        'horizon': 'variable',
+                        'obs_type': 'dict',
+                        'distance_threshold_pos': threshold_pos,
+                        'dr': 1,
+                        'dt': 1,
+                        'action_type': 'euler',
+                        'distance_threshold_ori': threshold_ori,
+                        'start_pos': 'home',
+                        'render_mode': render_mode,
+                        'softtissue': softtissue,
+                        'vtk_file': vtk_file,
+                        'number_of_springs': num_springs,
+                        'youngs_modulus': youngs_modulus,
+                        'maxforce': maxforce,
+                        'contact_type': 0,
+                        'test': True
+                }
+                env_kwargs_list.append(individual_kwargs)
         
-        env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs, vec_env_cls=DummyVecEnv, n_envs=num_envs, seed=seed)
+        # 2. Pass the list of dictionaries directly using env_kwargs
+        env = make_vec_env(
+                'gym_fracture:anklesurg-v1', 
+                env_kwargs=None, # Clear standard global dict field
+                vec_env_cls=DummyVecEnv, 
+                num_envs=num_envs, 
+                seed=seed,
+                wrapper_class=None,
+                env_kwargs_list=env_kwargs_list # Pass your custom per-env lists here
+        )
+        env = VecNormalize(env, norm_obs=True, norm_reward=False)
         env = VecNormalize(env, norm_obs=True, norm_reward=False)
         
         force_axis = []
