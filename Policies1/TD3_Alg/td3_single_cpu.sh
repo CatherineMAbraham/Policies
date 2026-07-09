@@ -2,7 +2,7 @@
 #SBATCH --mail-user=cmabraham1@sheffield.ac.uk
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --ntasks=1            # 4 agents total
-#SBATCH --cpus-per-task=5      # 4 CPUs per agent
+#SBATCH --cpus-per-task=10      # 4 CPUs per agent
 #SBATCH --mem=20G              # 8GB RAM per agent
 #SBATCH --time=8:00:00
 #SBATCH --output=out_%A_%a.out
@@ -15,4 +15,4 @@ source activate softsurg
 
 # Run the script
 #srun --export=ALL 
-python td3_v1.py --threshold_pos 0.0005 --threshold_ori 0.5 --action_type euler --maxforce 3 --softtissue spring --contact_type 0 --render_mode 'direct' --num_springs 3 --log 1
+python td3_v1.py --threshold_pos 0.0005 --threshold_ori 0.5 --action_type euler --maxforce 4 --softtissue spring --contact_type 0 --render_mode 'direct' --num_springs 3 --log 1

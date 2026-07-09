@@ -235,7 +235,7 @@ def train(threshold_pos=0.001,
 
     # 4. Create an identical, blank TD3 architecture hooked up to the new environment
     eval_model = TD3("MultiInputPolicy",
-                env=env,verbose=0,
+                env=soft_eval_env,verbose=0,
                 replay_buffer_class=HerReplayBuffer,
                 replay_buffer_kwargs=dict(n_sampled_goal=8,goal_selection_strategy='future'),
                 learning_rate=linear_schedule(0.001),
