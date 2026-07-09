@@ -103,7 +103,7 @@ def multiple_envs(model_path,
                 'gym_fracture:anklesurg-v1', 
                 env_kwargs=None, # Clear standard global dict field
                 vec_env_cls=DummyVecEnv, 
-                num_envs=num_envs, 
+                n_envs=num_envs, 
                 seed=seed,
                 wrapper_class=None,
                 env_kwargs_list=env_kwargs_list # Pass your custom per-env lists here
