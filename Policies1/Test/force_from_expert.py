@@ -100,8 +100,7 @@ def multiple_envs(model_path,
         
         # 2. Pass the list of dictionaries directly using env_kwargs
         env = make_vec_env(
-                'gym_fracture:anklesurg-v1', 
-                env_kwargs=None, # Clear standard global dict field
+                'gym_fracture:anklesurg-v1', # Clear standard global dict field
                 vec_env_cls=DummyVecEnv, 
                 n_envs=num_envs, 
                 seed=seed,
