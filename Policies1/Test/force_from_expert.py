@@ -91,7 +91,7 @@ def multiple_envs(model_path,
                 'contact_type': 0,
                 'test': True}
         
-        env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs, vec_env_cls=DummyVecEnv, num_envs=num_envs, seed=seed)
+        env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs, vec_env_cls=DummyVecEnv, n_envs=num_envs, seed=seed)
         env = VecNormalize(env, norm_obs=True, norm_reward=False)
         
         force_axis = []
