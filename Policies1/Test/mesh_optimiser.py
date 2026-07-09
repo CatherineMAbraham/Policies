@@ -255,7 +255,8 @@ if __name__ == "__main__":
     if log == 1:
         wandb.init(project="mesh_optimisation", name="Youngs_Modulus_Optimisation",notes=commit,save_code=True)
     wide_search_space = [1e6, 5e5, 1e6, 2e6, 5e6,1e7,5e7]
-    narrow_search_space = np.linspace(1e6, 2e6, 10)  # 10 points between 1e6 and 2e6
+    #narrow_search_space = np.linspace(1e6, 2e6, 10)  # 10 points between 1e6 and 2e6
+    narrow_search_space = [1e6,1.1e6,1.2e6,1.3e6,1.4e6,1.5e6,1.6e6,1.7e6,1.8e6,1.9e6,2e6]  # 10 points between 1e6 and 2e6
     sweep_results = {}
     print("--- Starting Global Coarse Sweep ---")
     for E_test in narrow_search_space:
