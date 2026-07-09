@@ -141,31 +141,20 @@ def get_expert():
     return csv_mean, csv_std
 
 def run_simulation(youngs_modulus, vtk_file):
+    # Run the simulation for each expert trajectory
     normalized_forces = []
-    experts = ["Expert_1_actions", "Expert_2_actions", "Expert_3_actions", "Expert_4_actions", "Expert_5_actions"]
-    num_envs = len(experts)
-    
-    # multiple_envs now returns a list of 5 lists: [ [forces_env0], [forces_env1], ... ]
-    all_env_forces = multiple_envs(
-        model_path=None,
-        threshold_pos=0.0001,
-        threshold_ori=0.5,
-        maxforce=500,
-        softtissue=None,
-        youngs_modulus=youngs_modulus,
-        vtk_file=vtk_file,
-        experts=experts,
-        log=0
-    )
-    
-    # Clean, safe parsing loop without variable overwriting
-    for i in range(len(all_env_forces)):
-        expert_name = experts[i]
-        single_env_profile = all_env_forces[i]
-        
-        # Interpolate and normalize onto the standard 101 completion grid
-        normalized_force = normalize_force_trajectory(single_env_profile)
-        normalized_forces.append(pd.Series(normalized_force, name=expert_name))
+    for expert in ["Expert_1_actions", "Expert_2_actions", "Expert_3_actions", "Expert_4_actions", "Expert_5_actions"]:
+        step_force = multiple_envs(None,
+                    threshold_pos=0.0001,
+                    threshold_ori=0.5,
+                    maxforce=500,
+                    softtissue=None,
+                    youngs_modulus=youngs_modulus,
+                    vtk_file=vtk_file,
+                    expert=expert,log=0)
+        #print(step_force)
+        normalized_force = normalize_force_trajectory(step_force)
+        normalized_forces.append(pd.Series(normalized_force, name=expert))
 
     if normalized_forces:
         force_df = pd.concat(normalized_forces, axis=1)
@@ -175,7 +164,6 @@ def run_simulation(youngs_modulus, vtk_file):
         force_df = pd.DataFrame()
         force_mean = np.array([])
         force_std = np.array([])
-        
     print(f"Mean Force Trajectory for Young's Modulus {youngs_modulus}: {force_mean}")
     return force_df, force_mean, force_std
     
