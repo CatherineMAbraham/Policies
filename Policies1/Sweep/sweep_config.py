@@ -7,6 +7,7 @@ sweep_config = {"method": "random",
     "gamma": {"values": [0.9,0.93,0.95,0.98,0.99], "distribution": "categorical"},
     "tau": {"values": [0.1,0.07,0.05,0.02,0.01,0.005], "distribution": "categorical"},
     "batch_size": {"values": [ 128, 256, 512], "distribution": "categorical"},
+    "buffer_size": {"values": [100000, 200000, 500000,1000000], "distribution": "categorical"},
     "train_freq": {"values": [1,2,4,5], "distribution": "categorical"},  
     "learning_starts": {"values": [1000, 2000,5000,10000], "distribution": "categorical"},
     "net_arch": {

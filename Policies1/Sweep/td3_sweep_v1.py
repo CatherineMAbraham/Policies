@@ -70,7 +70,7 @@ def train(threshold_pos=0.001,
     action_type = 'euler'# 'fouractions'#'pos_only' #action_type
     threshold_pos = 0.0005
     threshold_ori = np.deg2rad(0.5)
-    maxforce = 4
+    maxforce = 3
     softtissue = 'spring'
     num_springs = 3
     contact_type = 0
@@ -86,7 +86,7 @@ def train(threshold_pos=0.001,
     learning_starts = config.learning_starts
     her_sampled_goal = config.her_sampled_goal 
     action_noise = config.action_noise
-
+    buffer_size = config.buffer_size
     env_kwargs = {
         'reward_type': 'sparse',
         'max_steps': 100,
@@ -124,7 +124,7 @@ def train(threshold_pos=0.001,
                 replay_buffer_kwargs=dict(n_sampled_goal=her_sampled_goal),
                 learning_rate=linear_schedule(learning_rate),
                 train_freq=train_freq,
-                buffer_size=1_000_000,
+                buffer_size=buffer_size,
                 learning_starts= learning_starts,
                 batch_size=batch_size,
                 tau= tau,
@@ -169,5 +169,5 @@ def train(threshold_pos=0.001,
 
 
 if __name__ == "__main__":
-    sweep_id = "1bayndf7"
-    wandb.agent(sweep_id, function=train, count=4)
+    sweep_id = "zdni8int"
+    wandb.agent(sweep_id, function=train, count=10)
