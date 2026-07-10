@@ -5,10 +5,10 @@
 #SBATCH --qos=gpu
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks=1            # 4 agents total
-#SBATCH --cpus-per-task=1      # 4 CPUs per agent
+#SBATCH --cpus-per-task=5      # 4 CPUs per agent
 #SBATCH --mem=8G              # 8GB RAM per agent
-#SBATCH --array=1-30
-#SBATCH --time=60:00:00
+#SBATCH --array=1-13
+#SBATCH --time=45:00:00
 #SBATCH --output=out_%A_%a.out
 
 
@@ -21,4 +21,4 @@ PARAM_LINE=$(sed -n "${TASK_ID}p" tests.csv)
 IFS=',' read -r TISSUE NUM_SPRINGS YOUNGS_MODULUS  SEED <<< "$PARAM_LINE"
 echo "Running test with: Tissue=$TISSUE, Young's Modulus=$YOUNGS_MODULUS, Number of Springs=$NUM_SPRINGS, Seed=$SEED"
 # Run the script 
-srun --export=ALL python td3.py --threshold_pos 0.001 --threshold_ori 5 --action_type euler --maxforce 4 --num_springs $NUM_SPRINGS --softtissue $TISSUE --youngs_modulus $YOUNGS_MODULUS --contact_type 0 --seed $SEED --ran $TASK_ID
+srun --export=ALL python td3_v1.py --threshold_pos 0.0005 --threshold_ori 0.5 --action_type euler --maxforce 3 --num_springs $NUM_SPRINGS --softtissue $TISSUE --youngs_modulus $YOUNGS_MODULUS --contact_type 0 --seed $SEED --ran $TASK_ID --log 1
