@@ -307,7 +307,7 @@ if __name__ == "__main__":
     parser.add_argument('--softtissue', type=str, default="spring", help='Soft Tissue Type.')
     parser.add_argument('--num_springs', type=int, default=3, help='Number of springs for the soft tissue.')
     parser.add_argument('--contact_type', type=int, default=0, help='Type of contact for the environment.')
-    parser.add_argument('--youngs_modulus', type=int, default=1e7, help='Young\'s modulus for the soft tissue. Use an integer or None')
+    parser.add_argument('--youngs_modulus', type=float, default=1e7, help='Young\'s modulus for the soft tissue. Use an integer or None')
     parser.add_argument('--vtkfile', type=str, default='rect0009.vtk', help='VTK file for the soft tissue model.')
     parser.add_argument('--ran', type=str, default="1", help='Random seed for the run.')
     parser.add_argument('--log', type=int, default=0, help='Whether to log the training run to W&B.')
