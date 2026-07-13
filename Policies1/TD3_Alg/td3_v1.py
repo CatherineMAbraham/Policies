@@ -184,11 +184,11 @@ def train(threshold_pos=0.001,
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     log_callback1 = log_callback.CustomCallback()
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
-                                                    max_no_improvement_evals=5, 
-                                                    success_threshold=0.9,  
-                                                    min_evals=1, verbose=1, 
-                                                    model_name = model_name,
-                                                    model_save_path=f'./best_models/{ran}')
+                                                    max_no_improvement_evals=0, 
+                                                    success_threshold=1,  
+                                                    min_evals=1, verbose=1)#, 
+                                                    #model_name = model_name,
+                                                    #model_save_path=f'./best_models/{ran}')
     eval_callback = EvalCallback(eval_env,  eval_freq=10000,
                                 deterministic=True, n_eval_episodes=50,
                                 callback_after_eval=success_callback)
@@ -225,7 +225,7 @@ def train(threshold_pos=0.001,
                 'start_pos' : 'home',
                 'render_mode': 'direct',
                 'test': True,}
-    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v1', n_envs=10, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
+    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v1', n_envs=20, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
     
     soft_eval_env = VecNormalize(soft_eval_env, norm_obs=True, norm_reward=False)
 
@@ -255,7 +255,7 @@ def train(threshold_pos=0.001,
 
     dones = []
     contacts = []
-    num = 100
+    num = 1000
     episodes_collected = 0
     obs = soft_eval_env.reset()
     #print(f"Initial observation: {obs}")
