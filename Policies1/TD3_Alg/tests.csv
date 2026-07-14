@@ -1,13 +1,4 @@
-spring,1,1e6,1
-spring,1,5e6,1
-spring,1,1e7,1
-spring,3,1e6,1
-spring,3,5e6,1
-spring,3,1e7,1
-spring,5,1e6,1
-spring,5,5e6,1
-spring,5,1e7,1
-spring,10,1e6,1
-spring,10,5e6,1
-spring,10,1e7,1
-None,1,1,1
+spring,1,1.5e6,1
+spring,3,1.5e6,1
+spring,5,1.5e6,1
+spring,10,1.5e6,1
