@@ -1,5 +1,3 @@
-from pyexpat import model
-
 import gymnasium as gym
 from stable_baselines3 import TD3, HerReplayBuffer
 from stable_baselines3.common.noise import OrnsteinUhlenbeckActionNoise
@@ -186,9 +184,9 @@ def train(threshold_pos=0.001,
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
                                                     max_no_improvement_evals=1, 
                                                     success_threshold=1,  
-                                                    min_evals=1, verbose=1)#, 
-                                                    #model_name = model_name,
-                                                    #model_save_path=f'./best_models/{ran}')
+                                                    min_evals=1, verbose=1, 
+                                                    model_name = model_name,
+                                                    model_save_path=f'./best_models/{ran}')
     eval_callback = EvalCallback(eval_env,  eval_freq=10000,
                                 deterministic=True, n_eval_episodes=50,
                                 callback_after_eval=success_callback)
@@ -258,6 +256,7 @@ def train(threshold_pos=0.001,
     num = 1000
     episodes_collected = 0
     obs = soft_eval_env.reset()
+    max_forces = []
     #print(f"Initial observation: {obs}")
     eps = 0
     while episodes_collected < num:
@@ -294,6 +293,12 @@ def train(threshold_pos=0.001,
                                 wandb.log({"Episode": episodes_collected,  "Contact": has_contact, "force": info.get('force', 0), "Position Distance": info.get('pos_distance', 0), "Angle Distance": info.get('angle', 0), "Success": is_success, "Success Rate": sum(dones) / len(dones)})
                                 if info.get('force', 0) <= 50:      
                                     wandb.run.summary["final_success_rate"] = sum(dones) / eps
+                                    if info.get('force', 0) <= maxforce:
+                                        max_force = info.get('force', 0)
+                                        max_forces.append(max_force)
+                                        wandb.run.summary["max_force"] = max_force
+                                        wandb.run.summary["Average baselines Force"] = sum(max_forces) / len(max_forces) ## want to see what the average max force is 
+                                        
                             if episodes_collected >= num:
                                     break
 
