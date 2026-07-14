@@ -73,6 +73,8 @@ class StopTrainingOnSuccessRate(BaseCallback):
                     print(f"New best success rate: {self.best_success_rate:.2f} - model saved to {model_path}")
                 
                 wandb.summary['best_success_rate'] = self.best_success_rate
+                if self.success_threshold == 1.0:
+                    continue_training = False ## If the success threshold is 1.0, we can stop training immediately after reaching it
             else:
                 # Not a new best — count as no-improvement only after threshold was ever met
                 if self.threshold_met:
