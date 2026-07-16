@@ -15,4 +15,4 @@ source activate softsurg
 
 # Run the script
 #srun --export=ALL 
-python td3_v1.py --threshold_pos 0.0005 --threshold_ori 0.5 --action_type euler --maxforce 3 --softtissue spring --num_springs 10 --youngs_modulus 1e6 --contact_type 0 --seed 5 --ran $TASK_ID --log 1
+python td3_v1.py --threshold_pos 0.0005 --threshold_ori 0.5 --action_type euler --maxforce 3 --softtissue spring --num_springs 10 --youngs_modulus 1e6 --contact_type 0 --seed 5 --log 1
