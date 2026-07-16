@@ -1,6 +1,6 @@
 import gymnasium as gym
 from stable_baselines3 import TD3, HerReplayBuffer
-from stable_baselines3.common.noise import OrnsteinUhlenbeckActionNoise
+from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize, DummyVecEnv
 from stable_baselines3.common.env_util import make_vec_env
@@ -134,29 +134,28 @@ def train(threshold_pos=0.001,
         'youngs_modulus': youngs_modulus,
         'test': True,
         'render_mode': render_mode,}
-        #"0.025 -0.04 0" rpy="0 1.57 0"
+    
+    td3_kwargs = {"tau": 0.1,
+                "gamma": 0.9,
+                "batch_size":  128,
+                "train_freq":  2,
+                "buffer_size": 500000,
+                "learning_rate": 0.001,
+                "learning_starts":2000,
+                "gradient_steps": -1,
+                "policy": "MultiInputPolicy",
+                "replay_buffer_class": HerReplayBuffer,
+                "replay_buffer_kwargs": dict(n_sampled_goal=8,goal_selection_strategy='future'),
+                "policy_kwargs": dict(net_arch=[400, 300]),
+                "tensorboard_log": f'./logs/{ran}',
+                "seed": seed}
    
     env = make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
     env = VecNormalize(env, norm_obs=True, norm_reward=False)
-    action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(env.action_space.shape[0]),
-                                              sigma=0.02 * np.ones(env.action_space.shape[0]))
+    action_noise = NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.1 * np.ones(env.action_space.shape[0]))
 
-    policy_kwargs = dict(net_arch=[256, 256,256])#, activation_fn='relu')
 
-    model = TD3(policy="MultiInputPolicy",
-                env=env,verbose=0,
-                replay_buffer_class=HerReplayBuffer,
-                replay_buffer_kwargs=dict(n_sampled_goal=8,goal_selection_strategy='future'),
-                learning_rate=linear_schedule(0.001),
-                train_freq=1,
-                buffer_size=1000000,
-                learning_starts=2000,
-                batch_size=512,
-                tau= 0.02,
-                gamma=0.90,
-                policy_kwargs=policy_kwargs,
-                gradient_steps=-1,
-                seed=seed, action_noise=action_noise,tensorboard_log=f'./logs/{ran}')
+    model = TD3(**td3_kwargs, env=env, action_noise=action_noise)
 
 
     eval_env_kwargs = {
@@ -177,6 +176,7 @@ def train(threshold_pos=0.001,
             'softtissue':softtissue,
             'test': False,
             'render_mode': 'direct'}
+   
     eval_env=make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed = eval_seed)
     
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
@@ -198,8 +198,8 @@ def train(threshold_pos=0.001,
     #save model name in log file
     with open('./logs/model_log.txt', 'w') as f:
         f.write(f'{model_name}\n')
-    model.save(f'./models/{model_name}')
-    model.save_replay_buffer(f'./models/{model_name}-rb')
+    #model.save(f'./models/{model_name}')
+    #model.save_replay_buffer(f'./models/{model_name}-rb')
    
     ## Evalulate the model using the FEM model 
     
@@ -224,32 +224,19 @@ def train(threshold_pos=0.001,
                 'render_mode': 'direct',
                 'test': True,}
     soft_eval_env = make_vec_env('gym_fracture:anklesurg-v1', n_envs=20, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
-    
-    soft_eval_env = VecNormalize(soft_eval_env, norm_obs=True, norm_reward=False)
+    stats_path = f'./best_models/{ran}/vec_normalize.pkl'
+    soft_eval_env = VecNormalize.load(stats_path, soft_eval_env)
 
-    soft_eval_env.obs_rms = env.obs_rms  # Direct reference copy of the running means
+    #soft_eval_env.obs_rms = env.obs_rms  # Direct reference copy of the running means
     soft_eval_env.training = False       # FREEZE STATS: Essential so eval steps don't corrupt them
     soft_eval_env.norm_reward = False
 
     # 4. Create an identical, blank TD3 architecture hooked up to the new environment
-    eval_model = TD3("MultiInputPolicy",
-                env=soft_eval_env,verbose=0,
-                replay_buffer_class=HerReplayBuffer,
-                replay_buffer_kwargs=dict(n_sampled_goal=8,goal_selection_strategy='future'),
-                learning_rate=linear_schedule(0.001),
-                train_freq=1,
-                buffer_size=1000000,
-                learning_starts=2000,
-                batch_size=512,
-                tau= 0.02,
-                gamma=0.90,
-                policy_kwargs=policy_kwargs,
-                gradient_steps=-1,
-                seed=seed, action_noise=action_noise,tensorboard_log=f'./logs/{ran}')
+    #eval_model = TD3(**td3_kwargs, env=soft_eval_env, action_noise=action_noise)
+    model_path = f'./best_models/{ran}/{model_name}/{model_name}'
+    eval_model = TD3.load(model_path, env=soft_eval_env)#, action_noise=action_noise)
 
 
-# 5. DIRECT RAM TRANSFER: Copy the neural network weights directly over
-    eval_model.set_parameters(model.get_parameters())
 
     dones = []
     contacts = []
@@ -257,7 +244,7 @@ def train(threshold_pos=0.001,
     episodes_collected = 0
     obs = soft_eval_env.reset()
     max_forces = []
-    #print(f"Initial observation: {obs}")
+    
     eps = 0
     while episodes_collected < num:
             action, _ = eval_model.predict(obs, deterministic=True)
