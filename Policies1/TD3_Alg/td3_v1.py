@@ -144,7 +144,7 @@ def train(threshold_pos=0.001,
                 "batch_size":  128,
                 "train_freq":  2,
                 "buffer_size": 500000,
-                "learning_rate": 0.001,
+                "learning_rate": linear_schedule(0.001),
                 "learning_starts":2000,
                 "gradient_steps": -1,
                 "policy": "MultiInputPolicy",
@@ -228,7 +228,7 @@ def train(threshold_pos=0.001,
                 'render_mode': 'direct',
                 'test': True,}
     soft_eval_env = make_vec_env('gym_fracture:anklesurg-v1', n_envs=20, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
-    stats_path = f'./best_models/{ran}/{model_path}/vec_normalize.pkl'
+    stats_path = f'./best_models/{ran}/{model_name}/vec_normalize.pkl'
     soft_eval_env = VecNormalize.load(stats_path, soft_eval_env)
 
     #soft_eval_env.obs_rms = env.obs_rms  # Direct reference copy of the running means
