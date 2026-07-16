@@ -61,17 +61,20 @@ class StopTrainingOnSuccessRate(BaseCallback):
 
             # 1. Check if we reached the ultimate stopping success threshold
             if success_rate >= self.success_threshold:
+                self.threshold_met = True
                 if self.verbose >= 1:
                     print(f"Success threshold ({self.success_threshold:.2f}) met with rate {success_rate:.2f}! Stopping training.")
                 self.save_model(self.parent.model)
                 wandb.summary['best_success_rate'] = success_rate
+                if self.success_threshold ==1:
+                    continue_training = False
                 return False  # Stops the training immediately
 
             # 2. Track "new best" models and handle saving when success rate is >= 0.90
             if success_rate > self.best_success_rate:
                 self.best_success_rate = success_rate
                 self.no_improvement_evals = 0
-                self.threshold_met = True
+                
                 
                 # Only save if we have achieved a NEW best success rate that is also >= 90%
                 if success_rate >= 0.90:

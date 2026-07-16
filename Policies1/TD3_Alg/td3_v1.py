@@ -228,7 +228,7 @@ def train(threshold_pos=0.001,
                 'render_mode': 'direct',
                 'test': True,}
     soft_eval_env = make_vec_env('gym_fracture:anklesurg-v1', n_envs=20, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
-    stats_path = f'./best_models/{ran}/vec_normalize.pkl'
+    stats_path = f'./best_models/{ran}/{model_path}/vec_normalize.pkl'
     soft_eval_env = VecNormalize.load(stats_path, soft_eval_env)
 
     #soft_eval_env.obs_rms = env.obs_rms  # Direct reference copy of the running means
