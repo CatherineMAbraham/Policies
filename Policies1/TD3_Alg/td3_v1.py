@@ -1,3 +1,5 @@
+import os
+
 import gymnasium as gym
 from stable_baselines3 import TD3, HerReplayBuffer
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
@@ -12,6 +14,8 @@ from git import Repo, InvalidGitRepositoryError
 import argparse
 import log_callback
 from success_callback import StopTrainingOnSuccessRate
+import shutil
+import gc
 #from env_test2 import multiple_envs 
 #repo_path = "/home/catherine/FractureGym/fracturesurgeryenv"
 repo_paths = ["/users/cop21cma/FracSoftGym/", "/home/catherine/FractureGym/",'/home/catherine/FractureSoftGym/']
@@ -288,6 +292,25 @@ def train(threshold_pos=0.001,
                                         
                             if episodes_collected >= num:
                                     break
+    
+    print("\nEvaluation complete. Cleaning up resources to save memory...")
+
+    # 1. Close the evaluation environments to free up system/subprocess RAM
+    soft_eval_env.close()
+
+    # 2. Delete model and environment variables from Python memory, then force GC
+    del eval_model
+    del soft_eval_env
+    gc.collect()
+
+    # 3. Delete the physical model files from your disk to free up storage
+    model_folder_path = f'./best_models/{ran}/{model_name}'
+    if os.path.exists(model_folder_path):
+        try:
+            shutil.rmtree(model_folder_path)
+            print(f"Successfully deleted model directory: {model_folder_path}")
+        except Exception as e:
+            print(f"Error while deleting directory {model_folder_path}: {e}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train TD3 model with specified thresholds and action type.')
