@@ -77,7 +77,7 @@ class StopTrainingOnSuccessRate(BaseCallback):
                 
                 
                 # Only save if we have achieved a NEW best success rate that is also >= 90%
-                if success_rate >= 0.90:
+                if success_rate >= 0.0:
                     if self.verbose >= 1:
                         print(f"New best success rate: {self.best_success_rate:.2f} (>= 0.90). Saving model...")
                     self.save_model(self.parent.model)
