@@ -244,7 +244,7 @@ def train(threshold_pos=0.001,
 
     dones = []
     contacts = []
-    num = 1000
+    num = 10
     episodes_collected = 0
     obs = soft_eval_env.reset()
     max_forces = []
