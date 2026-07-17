@@ -191,14 +191,14 @@ def train(threshold_pos=0.001,
                                                     min_evals=1, verbose=1, 
                                                     model_name = model_name,
                                                     model_save_path=f'./best_models/{ran}')
-    eval_callback = EvalCallback(eval_env,  eval_freq=10000,
-                                deterministic=True, n_eval_episodes=50,
+    eval_callback = EvalCallback(eval_env,  eval_freq=1000,
+                                deterministic=True, n_eval_episodes=5,
                                 callback_after_eval=success_callback)
     if log == 1:
         callback = [eval_callback, log_callback1]
     else:
         callback = [eval_callback]
-    model.learn(10_000, callback=callback)
+    model.learn(5_000, callback=callback)
     #save model name in log file
     with open('./logs/model_log.txt', 'w') as f:
         f.write(f'{model_name}\n')
