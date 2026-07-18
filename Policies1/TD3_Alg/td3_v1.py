@@ -117,7 +117,7 @@ def train(threshold_pos=0.001,
     name = f'{softtissue}_{num_springs}_{youngs_modulus_name}_{seed}_{train_date}'
     model_name = f'model-{name}'
     if log==1:
-        wandb.init(project="Tissue", name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
+        wandb.init(project="Chapter2-Results", name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     #print((f'{softtissue}-{train_date}-{num_springs}-{youngs_modulus}-{ran}'))
     env_kwargs = {
         'reward_type': 'sparse',
@@ -143,7 +143,7 @@ def train(threshold_pos=0.001,
                 "gamma": 0.9,
                 "batch_size":  128,
                 "train_freq":  2,
-                "buffer_size": 500000,
+                "buffer_size": 500_000,
                 "learning_rate": linear_schedule(0.001),
                 "learning_starts":2000,
                 "gradient_steps": -1,
@@ -187,18 +187,18 @@ def train(threshold_pos=0.001,
     log_callback1 = log_callback.CustomCallback()
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
                                                     max_no_improvement_evals=1, 
-                                                    success_threshold=0,  
+                                                    success_threshold=1,  
                                                     min_evals=1, verbose=1, 
                                                     model_name = model_name,
                                                     model_save_path=f'./best_models/{ran}')
-    eval_callback = EvalCallback(eval_env,  eval_freq=1000,
-                                deterministic=True, n_eval_episodes=5,
+    eval_callback = EvalCallback(eval_env,  eval_freq=10000,
+                                deterministic=True, n_eval_episodes=50,
                                 callback_after_eval=success_callback)
     if log == 1:
         callback = [eval_callback, log_callback1]
     else:
         callback = [eval_callback]
-    model.learn(5_000, callback=callback)
+    model.learn(500_000, callback=callback)
     #save model name in log file
     with open('./logs/model_log.txt', 'w') as f:
         f.write(f'{model_name}\n')
@@ -244,7 +244,7 @@ def train(threshold_pos=0.001,
 
     dones = []
     contacts = []
-    num = 10
+    num = 1000
     episodes_collected = 0
     obs = soft_eval_env.reset()
     max_forces = []
@@ -289,7 +289,10 @@ def train(threshold_pos=0.001,
                                         max_forces.append(max_force)
                                         wandb.run.summary["max_force"] = max_force
                                         wandb.run.summary["Average baselines Force"] = sum(max_forces) / len(max_forces) ## want to see what the average max force is 
-                                        
+                                        wandb.run.summary['Fail With Contact'] = sum(1 for d, c in zip(dones, contacts) if not d and c)
+                                        wandb.run.summary['Fail Without Contact'] = sum(1 for d, c in zip(dones, contacts) if not d and not c)
+                                        wandb.run.summary['Success With Contact'] = sum(1 for d, c in zip(dones, contacts) if d and c)
+                                        wandb.run.summary['Success Without Contact'] = sum(1 for d, c in zip(dones, contacts) if d and not c)
                             if episodes_collected >= num:
                                     break
     
