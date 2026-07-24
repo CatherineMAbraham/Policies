@@ -223,13 +223,23 @@ def train(threshold_pos=0.001,
             'render_mode': render_mode}
 
     wandb.init(project="Chapter3-Test", name = (f'{softtissue}_{num_springs}_{youngs_modulus_name}_{seed}_{train_date}_contact'),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
-    contact_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=contact_env_kwargs, vec_env_cls=DummyVecEnv, seed = eval_seed)
+    contact_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=contact_env_kwargs, vec_env_cls=DummyVecEnv, seed = seed)
     contact_env = VecNormalize(contact_env, norm_obs=True, norm_reward=False)
-    
+    contact_eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=20, env_kwargs=contact_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
+    contact_eval_env = VecNormalize(contact_eval_env, norm_obs=True, norm_reward=False)
+    contact_success_callback = StopTrainingOnSuccessRate(vec_env=contact_eval_env, 
+                                                    max_no_improvement_evals=1,
+                                                    success_threshold=1,  
+                                                    min_evals=1, verbose=1, 
+                                                    model_name = model_name,
+                                                    model_save_path=f'./best_models/{ran}')
+    contact_eval_callback = EvalCallback(contact_eval_env,  eval_freq=10000,
+                                    deterministic=True, n_eval_episodes=100,
+                                    callback_after_eval=contact_success_callback)
     model_path = f'./best_models/{ran}/{model_name}/{model_name}'
     next_model = TD3.load(model_path, env=contact_env)
 
-    next_model.learn(2_000_000, callback=callback,reset_num_timesteps=True, tb_log_name=f'{model_name}')
+    next_model.learn(2_000_000, callback=contact_eval_callback,reset_num_timesteps=True, tb_log_name=f'{model_name}')
 
 
 if __name__ == "__main__":
