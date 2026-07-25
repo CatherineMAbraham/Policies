@@ -178,7 +178,7 @@ def train(threshold_pos=0.001,
                     'youngs_modulus_type': youngs_modulus_type,
                     'render_mode': 'direct'}
     
-    eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=20, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
+    eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
     
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     log_callback1 = log_callback.CustomCallback()
@@ -225,7 +225,7 @@ def train(threshold_pos=0.001,
     wandb.init(project="Chapter3-Test", name = (f'{softtissue}_{num_springs}_{youngs_modulus_name}_{seed}_{train_date}_contact'),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     contact_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=contact_env_kwargs, vec_env_cls=DummyVecEnv, seed = seed)
     contact_env = VecNormalize(contact_env, norm_obs=True, norm_reward=False)
-    contact_eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=20, env_kwargs=contact_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
+    contact_eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=contact_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
     contact_eval_env = VecNormalize(contact_eval_env, norm_obs=True, norm_reward=False)
     contact_success_callback = StopTrainingOnSuccessRate(vec_env=contact_eval_env, 
                                                     max_no_improvement_evals=1,
