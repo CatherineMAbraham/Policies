@@ -132,6 +132,7 @@ def train(threshold_pos=0.001,
         'patient':110,
         'test': False,
         'youngs_modulus_type': youngs_modulus_type,
+        'randomise_ligs':False,
         'render_mode': render_mode}
         #"0.025 -0.04 0" rpy="0 1.57 0"
    
@@ -176,6 +177,7 @@ def train(threshold_pos=0.001,
                     'patient':110,
                     'test': False,
                     'youngs_modulus_type': youngs_modulus_type,
+                    'randomise_ligs':False,
                     'render_mode': 'direct'}
     
     eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
