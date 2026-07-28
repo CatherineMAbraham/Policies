@@ -222,7 +222,7 @@ if __name__ == "__main__":
     parser.add_argument('--softtissue', type=str, default="spring", help='Soft Tissue Type.')
     parser.add_argument('--num_springs', type=int, default=3, help='Number of springs for the soft tissue.')
     parser.add_argument('--contact_type', type=int, default=0, help='Type of contact for the environment.')
-    parser.add_argument('--youngs_modulus', type=int_or_none, default=1e7, help='Young\'s modulus for the soft tissue. Use an integer or None')
+    parser.add_argument('--youngs_modulus', type=float, default=1e7, help='Young\'s modulus for the soft tissue. Use an integer or None')
     parser.add_argument('--youngs_modulus_type', type=str, default='eval_mode', help='Type of Young\'s modulus for the soft tissue.')
     parser.add_argument('--randomise_ligs', type=bool, default=False, help='Whether to randomise ligaments for the environment.')
     parser.add_argument('--randomise_start', type=bool, default=False, help='Whether to randomise the starting position for the environment.')
