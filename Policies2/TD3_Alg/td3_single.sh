@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1            # 4 agents total
 #SBATCH --cpus-per-task=1      # 4 CPUs per agent
 #SBATCH --mem=8G              # 8GB RAM per agent
-#SBATCH --time=20:00:00
+#SBATCH --time=40:00:00
 #SBATCH --output=out_%A_%a.out
 
 
@@ -14,4 +14,5 @@ source activate softsurg
 # Read the correct line from params_curr_compare.csv
 
 # Run the script
-srun --export=ALL python td3_v2.py --threshold_pos 0.0005 --threshold_ori 0.5 --action_type euler --maxforce 3 --youngs_modulus_type testing --softtissue spring --contact_type 0 --render_mode 'direct'  --log 1
+#srun --export=ALL 
+python td3_contact.py --threshold_pos 0.0005 --threshold_ori 0.5 --action_type euler --maxforce 3 --youngs_modulus_type None --youngs_modulus 1e6 --softtissue spring --contact_type 0 --render_mode 'direct'  --log 1
