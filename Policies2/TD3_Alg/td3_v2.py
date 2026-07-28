@@ -82,6 +82,8 @@ def train(threshold_pos=0.001,
           ran='1',
           youngs_modulus=1000000,
           youngs_modulus_type = 'testing',
+          randomise_ligs=False,
+          randomise_start=False,
           log=True,
           seed=0):
     render_mode = render_mode
@@ -107,9 +109,11 @@ def train(threshold_pos=0.001,
     contact_type = contact_type
     eval_seed = 42
     youngs_modulus_name = "None" if youngs_modulus is None else "{:.1E}".format(youngs_modulus)
+    randomise_ligs = randomise_ligs
+    randomise_start = randomise_start
     #print(youngs_modulus)
     #print(contact_type)
-    name = f'{softtissue}_{num_springs}_{youngs_modulus_name}_{seed}_{train_date}'
+    name = f'{softtissue}_{num_springs}_{youngs_modulus_type}_{randomise_ligs}_{randomise_start}'
     model_name = f'model-{name}'
     if log==1:
         wandb.init(project="Chapter3-Test", name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
@@ -132,7 +136,8 @@ def train(threshold_pos=0.001,
         'patient':110,
         'test': False,
         'youngs_modulus_type': youngs_modulus_type,
-        'randomise_ligs':False,
+        'randomise_ligs':randomise_ligs,
+        'randomise_start':randomise_start,
         'render_mode': render_mode}
         #"0.025 -0.04 0" rpy="0 1.57 0"
    
@@ -177,7 +182,8 @@ def train(threshold_pos=0.001,
                     'patient':110,
                     'test': False,
                     'youngs_modulus_type': youngs_modulus_type,
-                    'randomise_ligs':False,
+                    'randomise_start':randomise_start,
+                    'randomise_ligs':randomise_ligs,
                     'render_mode': 'direct'}
     
     eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
@@ -218,6 +224,8 @@ if __name__ == "__main__":
     parser.add_argument('--contact_type', type=int, default=0, help='Type of contact for the environment.')
     parser.add_argument('--youngs_modulus', type=int_or_none, default=1e7, help='Young\'s modulus for the soft tissue. Use an integer or None')
     parser.add_argument('--youngs_modulus_type', type=str, default='eval_mode', help='Type of Young\'s modulus for the soft tissue.')
+    parser.add_argument('--randomise_ligs', type=bool, default=False, help='Whether to randomise ligaments for the environment.')
+    parser.add_argument('--randomise_start', type=bool, default=False, help='Whether to randomise the starting position for the environment.')
     parser.add_argument('--ran', type=str, default="1", help='Random seed for the run.')
     parser.add_argument('--log', type=int, default=0, help='Whether to log the training run to W&B.')
     parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducibility.')
@@ -234,4 +242,6 @@ if __name__ == "__main__":
           log=args.log,
           youngs_modulus=args.youngs_modulus,
           youngs_modulus_type=args.youngs_modulus_type,
+            randomise_ligs=args.randomise_ligs,
+            randomise_start=args.randomise_start,
           seed=args.seed)
