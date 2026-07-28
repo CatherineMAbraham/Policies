@@ -109,8 +109,8 @@ def train(threshold_pos=0.001,
     contact_type = contact_type
     eval_seed = 42
     youngs_modulus_name = "None" if youngs_modulus is None else "{:.1E}".format(youngs_modulus)
-    randomise_ligs = randomise_ligs
-    randomise_start = randomise_start
+    randomise_ligs = True if randomise_ligs == 1 else False
+    randomise_start = True if randomise_start == 1 else False
     #print(youngs_modulus)
     #print(contact_type)
     name = f'{softtissue}_{num_springs}_{youngs_modulus_type}_{randomise_ligs}_{randomise_start}'
@@ -224,8 +224,8 @@ if __name__ == "__main__":
     parser.add_argument('--contact_type', type=int, default=0, help='Type of contact for the environment.')
     parser.add_argument('--youngs_modulus', type=float, default=1e7, help='Young\'s modulus for the soft tissue. Use an integer or None')
     parser.add_argument('--youngs_modulus_type', type=str, default='eval_mode', help='Type of Young\'s modulus for the soft tissue.')
-    parser.add_argument('--randomise_ligs', type=bool, default=False, help='Whether to randomise ligaments for the environment.')
-    parser.add_argument('--randomise_start', type=bool, default=False, help='Whether to randomise the starting position for the environment.')
+    parser.add_argument('--randomise_ligs', type=int, default=0, help='Whether to randomise ligaments for the environment.')
+    parser.add_argument('--randomise_start', type=int, default=0, help='Whether to randomise the starting position for the environment.')
     parser.add_argument('--ran', type=str, default="1", help='Random seed for the run.')
     parser.add_argument('--log', type=int, default=0, help='Whether to log the training run to W&B.')
     parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducibility.')
@@ -242,6 +242,6 @@ if __name__ == "__main__":
           log=args.log,
           youngs_modulus=args.youngs_modulus,
           youngs_modulus_type=args.youngs_modulus_type,
-            randomise_ligs=args.randomise_ligs,
-            randomise_start=args.randomise_start,
+          randomise_ligs=args.randomise_ligs,
+          randomise_start=args.randomise_start,
           seed=args.seed)

@@ -1,6 +1,6 @@
 td3_contact.py, None
-td3_v2.py, testing, False,False
-td3_v2.py, None,True,False
-td3_v2.py, None,False,True
-td3_v2.py, None,True,True
-td3_v2.py, testing,True,True
+td3_v2.py, testing, 0,0
+td3_v2.py, None,1,0
+td3_v2.py, None,0,1
+td3_v2.py, None,1,1
+td3_v2.py, testing,1,1
