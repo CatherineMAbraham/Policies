@@ -166,7 +166,7 @@ def train(threshold_pos=0.001,
 
     eval_env_kwargs = {
             'reward_type': 'sparse',
-                    'max_steps': 150,
+                    'max_steps': 100,
                     'horizon': 'variable',
                     'obs_type': 'dict',
                     'distance_threshold_pos': threshold_pos,
@@ -203,7 +203,7 @@ def train(threshold_pos=0.001,
         callback = [eval_callback, log_callback1]
     else:
         callback = [eval_callback]
-    model.learn(2_000_000, callback=callback)
+    model.learn(1_000_000, callback=callback)
     #save model name in log file
     with open('./logs/model_log.txt', 'w') as f:
         f.write(f'{model_name}\n')

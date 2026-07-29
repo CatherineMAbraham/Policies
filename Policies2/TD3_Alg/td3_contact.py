@@ -125,7 +125,7 @@ def train(threshold_pos=0.001,
         'distance_threshold_ori': threshold_ori,
         'action_type': action_type,
         'start_pos' : 'home',
-        'maxforce': maxforce,
+        'maxforce': 3,
         'contact_type' :contact_type,
         'number_of_springs':num_springs,
         'softtissue':softtissue,
@@ -169,7 +169,7 @@ def train(threshold_pos=0.001,
                     'distance_threshold_ori': threshold_ori,
                     'action_type': action_type,
                     'start_pos' : 'home',
-                    'maxforce': maxforce,
+                    'maxforce': 3,
                     'contact_type' :contact_type,
                     'number_of_springs':num_springs,
                     'softtissue':softtissue,
@@ -195,7 +195,7 @@ def train(threshold_pos=0.001,
         callback = [eval_callback, log_callback1]
     else:
         callback = [eval_callback]
-    model.learn(2_000_000, callback=callback)
+    model.learn(1_000_000, callback=callback)
     #save model name in log file
     with open('./logs/model_log.txt', 'w') as f:
         f.write(f'{model_name}\n')
@@ -213,7 +213,7 @@ def train(threshold_pos=0.001,
             'distance_threshold_ori': threshold_ori,
             'action_type': action_type,
             'start_pos' : 'home',
-            'maxforce': maxforce,
+            'maxforce': 3,
             'contact_type' :1,
             'number_of_springs':num_springs,
             'softtissue':softtissue,
