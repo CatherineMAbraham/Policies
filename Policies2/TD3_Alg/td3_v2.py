@@ -166,7 +166,7 @@ def train(threshold_pos=0.001,
 
     eval_env_kwargs = {
             'reward_type': 'sparse',
-                    'max_steps': 100,
+                    'max_steps': 150,
                     'horizon': 'variable',
                     'obs_type': 'dict',
                     'distance_threshold_pos': threshold_pos,
