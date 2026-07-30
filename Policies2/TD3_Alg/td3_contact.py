@@ -247,7 +247,7 @@ def train(threshold_pos=0.001,
     #model_path = f'./best_models/{ran}/{model_name}/{model_name}'
     model_path_2 = f'{model_path}{model_name}'
     next_model = TD3.load(model_path_2, env=contact_env)
-    zip_path = f"{model_path}-rb.zip"
+    zip_path = f"{model_path}-{model_name}-rb.zip"
 
     # Open the zip archive and extract the pkl stream
     with zipfile.ZipFile(zip_path, "r") as archive:
