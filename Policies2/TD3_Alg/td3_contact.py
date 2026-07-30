@@ -242,7 +242,7 @@ def train(threshold_pos=0.001,
                                     callback_after_eval=contact_success_callback)
     model_path = f'./best_models/{ran}/{model_name}/{model_name}'
     next_model = TD3.load(model_path, env=contact_env)
-    next_model.load_replay_buffer(f"{model_path}-rb")
+    next_model.load_replay_buffer(f"{model_path}{model_name}-rb")
     next_model.learn(2_000_000, callback=contact_eval_callback,reset_num_timesteps=True, tb_log_name=f'{model_name}')
 
 
