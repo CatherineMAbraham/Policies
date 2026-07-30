@@ -1,5 +1,3 @@
-import zipfile
-
 import gymnasium as gym
 from stable_baselines3 import TD3, HerReplayBuffer
 from stable_baselines3.common.noise import OrnsteinUhlenbeckActionNoise, NormalActionNoise
@@ -247,18 +245,7 @@ def train(threshold_pos=0.001,
     #model_path = f'./best_models/{ran}/{model_name}/{model_name}'
     model_path_2 = f'{model_path}{model_name}'
     next_model = TD3.load(model_path_2, env=contact_env)
-    zip_path = f"{model_path}{model_name}-rb.zip"
-
-    # Open the zip archive and extract the pkl stream
-    with zipfile.ZipFile(zip_path, "r") as archive:
-        # Find the pkl file name inside the zip
-        pkl_name = [f for f in archive.namelist() if f.endswith(".pkl")][0]
-        
-        with archive.open(pkl_name) as pkl_file:
-            # Pass the opened file-like object directly to SB3
-            next_model.load_replay_buffer(pkl_file)
-
-    print("Replay buffer successfully loaded from zip!")
+    next_model.load_replay_buffer(f"{model_path}-rb")
     next_model.learn(2_000_000, callback=contact_eval_callback,reset_num_timesteps=True, tb_log_name=f'{model_name}')
 
 
