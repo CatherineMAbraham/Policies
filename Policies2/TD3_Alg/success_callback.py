@@ -42,9 +42,9 @@ class StopTrainingOnSuccessRate(BaseCallback):
         
         # Save replay buffer if it exists (e.g., DQN, SAC, TD3)
         # don't need this for eval so saves space 
-        # if hasattr(model, "save_replay_buffer"):
-        #     rb_path = os.path.join(self.model_path, f"{self.model_name}-rb.zip")
-        #     model.save_replay_buffer(rb_path)
+        if hasattr(model, "save_replay_buffer"):
+            rb_path = os.path.join(self.model_path, f"{self.model_name}-rb.zip")
+            model.save_replay_buffer(rb_path)
             
         if self.verbose >= 1:
             print(f"Model and env stats saved to {self.model_path}")
