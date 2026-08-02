@@ -108,15 +108,16 @@ def train(threshold_pos=0.001,
     threshold_ori = np.deg2rad(threshold_ori)
     maxforce = maxforce
     softtissue = softtissue
-    num_springs = num_springs
+    youngs_modulus = 1.5e6
+    num_springs = 3
     contact_type = contact_type
     eval_seed = 42
     youngs_modulus_name = "None" if youngs_modulus is None else "{:.1E}".format(youngs_modulus)
     randomise_ligs = True if randomise_ligs == 1 else False
     randomise_start = True if randomise_start == 1 else False
-    #print(youngs_modulus)
+    #print(youngs_modulus)  |
     #print(contact_type)
-    name = f'{softtissue}_{num_springs}_{youngs_modulus_type}_{randomise_ligs}_{randomise_start}'
+    name = f'{softtissue}_{contact_type}_{youngs_modulus_type}-{seed}'
     model_name = f'model-{name}'
     if log==1:
         wandb.init(project="Chapter3-Test", name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
