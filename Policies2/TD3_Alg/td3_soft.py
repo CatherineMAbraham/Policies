@@ -117,7 +117,7 @@ def train(threshold_pos=0.001,
     randomise_start = True if randomise_start == 1 else False
     #print(youngs_modulus)  |
     #print(contact_type)
-    name = f'{softtissue}_{contact_type}_{youngs_modulus_type}-{seed}'
+    name = f'{softtissue}_{randomise_start}_{randomise_ligs}-{seed}'
     model_name = f'model-{name}'
     if log==1:
         wandb.init(project="Chapter3-Test", name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
