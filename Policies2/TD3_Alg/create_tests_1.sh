@@ -15,5 +15,6 @@ for ym_type in "None" "testing"; do
     done
 done
 
+
 echo "CSV file 'tests_params.csv' created successfully!"
 cat tests_params.csv

@@ -119,100 +119,100 @@ def train(threshold_pos=0.001,
     #print(contact_type)
     name = f'{softtissue}_{contact_type}_{youngs_modulus_type}-{seed}'
     model_name = f'model-{name}'
-    # if log==1:
-    #     wandb.init(project="Chapter3-Test", name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
-    # #print((f'{softtissue}-{train_date}-{num_springs}-{youngs_modulus}-{ran}'))
-    # env_kwargs = {
-    #     'reward_type': 'sparse',
-    #     'max_steps': 100,
-    #     'horizon': 'variable',
-    #     'obs_type': 'dict',
-    #     'distance_threshold_pos': threshold_pos,
-    #     'dt': 0.001,
-    #     'dr':0.01,
-    #     'distance_threshold_ori': threshold_ori,
-    #     'action_type': action_type,
-    #     'start_pos' : 'home',
-    #     'maxforce': maxforce,
-    #     'contact_type' :contact_type,
-    #     'number_of_springs':num_springs,
-    #     'softtissue':softtissue,
-    #     'patient':110,
-    #     'test': False,
-    #     'youngs_modulus_type': youngs_modulus_type,
-    #     'randomise_ligs':randomise_ligs,
-    #     'randomise_start':randomise_start,
-    #     'render_mode': render_mode}
-    #     #"0.025 -0.04 0" rpy="0 1.57 0"
+    if log==1:
+        wandb.init(project="Chapter3-Test", name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
+    #print((f'{softtissue}-{train_date}-{num_springs}-{youngs_modulus}-{ran}'))
+    env_kwargs = {
+        'reward_type': 'sparse',
+        'max_steps': 100,
+        'horizon': 'variable',
+        'obs_type': 'dict',
+        'distance_threshold_pos': threshold_pos,
+        'dt': 0.001,
+        'dr':0.01,
+        'distance_threshold_ori': threshold_ori,
+        'action_type': action_type,
+        'start_pos' : 'home',
+        'maxforce': maxforce,
+        'contact_type' :contact_type,
+        'number_of_springs':num_springs,
+        'softtissue':softtissue,
+        'patient':110,
+        'test': False,
+        'youngs_modulus_type': youngs_modulus_type,
+        'randomise_ligs':randomise_ligs,
+        'randomise_start':randomise_start,
+        'render_mode': render_mode}
+        #"0.025 -0.04 0" rpy="0 1.57 0"
    
-    # td3_kwargs = {"tau": 0.1,
-    #                "gamma": 0.9,
-    #                "batch_size":  128,
-    #                "train_freq":  2,
-    #                "buffer_size": 500_000,
-    #                "learning_rate": linear_schedule(0.001),
-    #                "learning_starts":2000,
-    #                "gradient_steps": -1,
-    #                "policy": "MultiInputPolicy",
-    #                "replay_buffer_class": HerReplayBuffer,
-    #                "replay_buffer_kwargs": dict(n_sampled_goal=8,goal_selection_strategy='future'),
-    #                "policy_kwargs": dict(net_arch=[400, 300]),
-    #                "tensorboard_log": f'./logs/{ran}',
-    #                "seed": seed}
+    td3_kwargs = {"tau": 0.1,
+                   "gamma": 0.9,
+                   "batch_size":  128,
+                   "train_freq":  2,
+                   "buffer_size": 500_000,
+                   "learning_rate": linear_schedule(0.001),
+                   "learning_starts":2000,
+                   "gradient_steps": -1,
+                   "policy": "MultiInputPolicy",
+                   "replay_buffer_class": HerReplayBuffer,
+                   "replay_buffer_kwargs": dict(n_sampled_goal=8,goal_selection_strategy='future'),
+                   "policy_kwargs": dict(net_arch=[400, 300]),
+                   "tensorboard_log": f'./logs/{ran}',
+                   "seed": seed}
       
-    # env = make_vec_env('gym_fracture:anklesurg-v2', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
-    # env = VecNormalize(env, norm_obs=True, norm_reward=False)
-    # action_noise = NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.1 * np.ones(env.action_space.shape[0]))
+    env = make_vec_env('gym_fracture:anklesurg-v2', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
+    env = VecNormalize(env, norm_obs=True, norm_reward=False)
+    action_noise = NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.1 * np.ones(env.action_space.shape[0]))
 
 
-    # model = TD3(**td3_kwargs, env=env, action_noise=action_noise)
+    model = TD3(**td3_kwargs, env=env, action_noise=action_noise)
 
 
-    # eval_env_kwargs = {
-    #         'reward_type': 'sparse',
-    #                 'max_steps': 100,
-    #                 'horizon': 'variable',
-    #                 'obs_type': 'dict',
-    #                 'distance_threshold_pos': threshold_pos,
-    #                 'dt': 0.001,
-    #                 'dr':0.01,
-    #                 'distance_threshold_ori': threshold_ori,
-    #                 'action_type': action_type,
-    #                 'start_pos' : 'home',
-    #                 'maxforce': maxforce,
-    #                 'contact_type' :contact_type,
-    #                 'number_of_springs':num_springs,
-    #                 'softtissue':softtissue,
-    #                 'patient':110,
-    #                 'test': False,
-    #                 'youngs_modulus_type': youngs_modulus_type,
-    #                 'randomise_start':randomise_start,
-    #                 'randomise_ligs':randomise_ligs,
-    #                 'render_mode': 'direct'}
+    eval_env_kwargs = {
+            'reward_type': 'sparse',
+                    'max_steps': 100,
+                    'horizon': 'variable',
+                    'obs_type': 'dict',
+                    'distance_threshold_pos': threshold_pos,
+                    'dt': 0.001,
+                    'dr':0.01,
+                    'distance_threshold_ori': threshold_ori,
+                    'action_type': action_type,
+                    'start_pos' : 'home',
+                    'maxforce': maxforce,
+                    'contact_type' :contact_type,
+                    'number_of_springs':num_springs,
+                    'softtissue':softtissue,
+                    'patient':110,
+                    'test': False,
+                    'youngs_modulus_type': youngs_modulus_type,
+                    'randomise_start':randomise_start,
+                    'randomise_ligs':randomise_ligs,
+                    'render_mode': 'direct'}
     
-    # eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
+    eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
     
-    # eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
-    # log_callback1 = log_callback.CustomCallback()
-    # success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
-    #                                                 max_no_improvement_evals=1, 
-    #                                                 success_threshold=1,  
-    #                                                 min_evals=1, verbose=1, 
-    #                                                 model_name = model_name,
-    #                                                 model_save_path=f'./best_models/{ran}')
-    # eval_callback = EvalCallback(eval_env,  eval_freq=10000,
-    #                             deterministic=True, n_eval_episodes=100,
-    #                             callback_after_eval=success_callback)
-    # if log == 1:
-    #     callback = [eval_callback, log_callback1]
-    # else:
-    #     callback = [eval_callback]
-    # model.learn(2_000_000, callback=callback)
-    # #save model name in log file
-    # with open('./logs/model_log.txt', 'w') as f:
-    #     f.write(f'{model_name}\n')
-    #model.save(f'./models/{model_name}')
-    #model.save_replay_buffer(f'./models/{model_name}-rb')
+    eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
+    log_callback1 = log_callback.CustomCallback()
+    success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
+                                                    max_no_improvement_evals=1, 
+                                                    success_threshold=1,  
+                                                    min_evals=1, verbose=1, 
+                                                    model_name = model_name,
+                                                    model_save_path=f'./best_models/{ran}')
+    eval_callback = EvalCallback(eval_env,  eval_freq=10000,
+                                deterministic=True, n_eval_episodes=100,
+                                callback_after_eval=success_callback)
+    if log == 1:
+        callback = [eval_callback, log_callback1]
+    else:
+        callback = [eval_callback]
+    model.learn(2_000_000, callback=callback)
+    #save model name in log file
+    with open('./logs/model_log.txt', 'w') as f:
+        f.write(f'{model_name}\n')
+    model.save(f'./models/{model_name}')
+    model.save_replay_buffer(f'./models/{model_name}-rb')
     vtk_file = 'rect0009.vtk'
     soft_eval_env_kwargs = {
                 'reward_type': 'sparse',
@@ -234,8 +234,8 @@ def train(threshold_pos=0.001,
                 'start_pos' : 'home',
                 'render_mode': 'direct',
                 'test': True,}
-    ran = 18
-    model_name = 'model-spring_0_testing-7'
+    #ran = 18
+    #model_name = 'model-spring_0_testing-7'
     soft_eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=20, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
     stats_path = f'./best_models/{ran}/{model_name}/vec_normalize.pkl'
     soft_eval_env = VecNormalize.load(stats_path, soft_eval_env)
