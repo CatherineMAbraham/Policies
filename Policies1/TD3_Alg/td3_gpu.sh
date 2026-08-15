@@ -2,19 +2,19 @@
 #SBATCH --mail-user=cmabraham1@sheffield.ac.uk
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --partition=gpu
-#SBATCH --qos=gpu
 #SBATCH --gres=gpu:1
+#SBATCH --qos=gpu
 #SBATCH --ntasks=1            # 4 agents total
 #SBATCH --cpus-per-task=5      # 4 CPUs per agent
 #SBATCH --mem=10G              # 8GB RAM per agent
-#SBATCH --array=1-2
+#SBATCH --array=1-10
 #SBATCH --time=00:30:00
 #SBATCH --output=out_%A_%a.out
 
 
-module load Anaconda3/2024.06-1
+module load Anaconda3/2024.02-1
 
-source activate softsurg9
+conda activate softsurg9
 # Read the correct line from params_curr_compare.csv
 TASK_ID=${SLURM_ARRAY_TASK_ID:-1}
 PARAM_LINE=$(sed -n "${TASK_ID}p" tests.csv)
