@@ -12,7 +12,7 @@
 #SBATCH --output=out_%A_%a.out
 
 
-module load Anaconda3/2024.02-1
+module load Anaconda3/2024.06-1
 
 source activate softsurg9
 # Read the correct line from params_curr_compare.csv
