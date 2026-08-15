@@ -108,11 +108,19 @@ def train(threshold_pos=0.001,
     threshold_ori = np.deg2rad(threshold_ori)
     maxforce = maxforce
     softtissue = softtissue
-    youngs_modulus = 1.5e6
-    num_springs = 3
+    # youngs_modulus = 1.5e6
+    # num_springs = 3
     contact_type = contact_type
     eval_seed = 42
     youngs_modulus_name = "None" if youngs_modulus is None else "{:.1E}".format(youngs_modulus)
+    if youngs_modulus_type == 'testing':
+         name = f'{softtissue}_randomYM_{train_date}_{seed}'
+    elif contact_type == 1:
+            name = f'{softtissue}_contact_{train_date}_{seed}'
+    elif randomise_ligs == 1:
+            name = f'{softtissue}_randomligs_{train_date}_{seed}'
+    elif randomise_start == 1:
+            name = f'{softtissue}_randomstart_{train_date}_{seed}'
     randomise_ligs = True if randomise_ligs == 1 else False
     randomise_start = True if randomise_start == 1 else False
     #print(youngs_modulus)  |
