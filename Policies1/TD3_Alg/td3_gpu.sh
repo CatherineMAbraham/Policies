@@ -12,7 +12,7 @@
 #SBATCH --output=out_%A_%a.out
 
 
-source ~/anaconda3/etc/profile.d/conda.sh 2>/dev/null || source ~/.conda/etc/profile.d/conda.sh 2>/dev/null || source /usr/local/module/anaconda3/etc/profile.d/conda.sh
+source /opt/apps/testapps/common/software/staging/Anaconda3/2024.02-1/etc/profile.d/conda.sh
 
 conda activate softsurg9
 # Read the correct line from params_curr_compare.csv
