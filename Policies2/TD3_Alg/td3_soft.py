@@ -238,15 +238,15 @@ def train(threshold_pos=0.001,
                 'patient': 110,
                 'action_type': 'euler',
                 'maxforce': 4,
-                'contact_type' : 0,
+                'contact_type' : 1,
                 'start_pos' : 'home',
                 'render_mode': 'direct',
                 'test': True,}
     #ran = 18
     #model_name = 'model-spring_0_testing-7'
     #ran = 1
-    #model_name = 'model-spring_randomYM_08161518_1'#'model-spring_contact_08162136_1'
-    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
+   # model_name = 'model-spring_randomYM_08161518_1'#'model-spring_contact_08162136_1'
+    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=20, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
     stats_path = f'./best_models/{ran}/{model_name}/vec_normalize.pkl'
     soft_eval_env = VecNormalize.load(stats_path, soft_eval_env)
 
