@@ -121,6 +121,8 @@ def train(threshold_pos=0.001,
             name = f'{softtissue}_randomligs_{train_date}_{seed}'
     elif randomise_start == 1:
             name = f'{softtissue}_randomstart_{train_date}_{seed}'
+    else:
+         name = f'{softtissue}-{train_date}-{num_springs}-{youngs_modulus}-{ran}'
     randomise_ligs = True if randomise_ligs == 1 else False
     randomise_start = True if randomise_start == 1 else False
     #print(youngs_modulus)  |
@@ -237,16 +239,16 @@ def train(threshold_pos=0.001,
                 'vtk_file': vtk_file,
                 'patient': 110,
                 'action_type': 'euler',
-                'maxforce': 4,
-                'contact_type' : 1,
+                'maxforce': maxforce,
+                'contact_type' : 0,
                 'start_pos' : 'home',
                 'render_mode': 'direct',
                 'test': True,}
     #ran = 18
     #model_name = 'model-spring_0_testing-7'
     #ran = 1
-   # model_name = 'model-spring_randomYM_08161518_1'#'model-spring_contact_08162136_1'
-    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=20, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
+    #model_name = 'model-spring_randomYM_08161518_1'#'model-spring_contact_08162136_1'
+    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
     stats_path = f'./best_models/{ran}/{model_name}/vec_normalize.pkl'
     soft_eval_env = VecNormalize.load(stats_path, soft_eval_env)
 
@@ -292,7 +294,7 @@ def train(threshold_pos=0.001,
                             contacts.append(has_contact)
                             
                             episodes_collected += 1
-                            print(f"[{episodes_collected}/{num}] Env {i} Success: {is_success} Force: {info.get('force')} Pos: {info.get('pos_distance')} Angle: {info.get('angle')} Contact: {has_contact}, Success Rate: {sum(dones) / len(dones)}")
+                            print(f"[{episodes_collected}/{num}] Env {i} Success: {is_success} Force: {info.get('max_force')} Pos: {info.get('pos_distance')} Angle: {info.get('angle')} Contact: {has_contact}, Success Rate: {sum(dones) / len(dones)}")
                             ## If force >50 do not log to wandb as it is an outlier and can skew the results
                             # remove number of episodes collected from the success rate calculation in the log as well
                             if info.get('force', 0) <= 50:
@@ -300,7 +302,7 @@ def train(threshold_pos=0.001,
                             if log==1 :
                                 #table = wandb.Table(data = is_success,columns=["Episode", "Success"])
                                 #histogram = wandb.plot.Histogram(table,value='Success', title="Success Distribution")
-                                wandb.log({"Episode": episodes_collected,  "Contact": has_contact, "force": info.get('force', 0), "Position Distance": info.get('pos_distance', 0), "Angle Distance": info.get('angle', 0), "Success": is_success, "Success Rate": sum(dones) / len(dones)})
+                                wandb.log({"Episode": episodes_collected,  "Contact": has_contact, "force": info.get('max_force', 0), "Position Distance": info.get('pos_distance', 0), "Angle Distance": info.get('angle', 0), "Success": is_success, "Success Rate": sum(dones) / len(dones)})
                                 if info.get('force', 0) <= 50:      
                                     wandb.run.summary["final_success_rate"] = sum(dones) / eps
                                     if info.get('force', 0) <= maxforce:
