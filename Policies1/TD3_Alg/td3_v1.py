@@ -136,7 +136,7 @@ def train(threshold_pos=0.001,
         'softtissue':softtissue,
         #'vtk_file': 'rect0005.vtk',
         'youngs_modulus': youngs_modulus,
-        'test': True,
+        'test': False,
         'render_mode': render_mode,}
     
     td3_kwargs = {"tau": 0.1,
@@ -177,12 +177,12 @@ def train(threshold_pos=0.001,
             'contact_type' :contact_type,
             'number_of_springs':num_springs,
             'youngs_modulus': youngs_modulus,
-            'softtissue':softtissue,
-            #'vtk_file': 'rect01.vtk',
+            'softtissue':'soft',
+            'vtk_file': 'rect01.vtk',
             'test': False,
             'render_mode': 'direct'}
    
-    eval_env=make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=eval_env_kwargs,n_envs=10,vec_env_cls=SubprocVecEnv, seed = eval_seed)
+    eval_env=make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed = eval_seed)
     
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     log_callback1 = log_callback.CustomCallback()
@@ -228,7 +228,7 @@ def train(threshold_pos=0.001,
                 'start_pos' : 'home',
                 'render_mode': 'direct',
                 'test': True,}
-    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v1', n_envs=10, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
+    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v1', n_envs=20, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
     stats_path = f'./best_models/{ran}/{model_name}/vec_normalize.pkl'
     soft_eval_env = VecNormalize.load(stats_path, soft_eval_env)
 
