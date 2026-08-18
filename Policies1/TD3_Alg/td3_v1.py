@@ -2,6 +2,7 @@ import os
 
 import gymnasium as gym
 from stable_baselines3 import TD3, HerReplayBuffer
+from stable_baselines3.common import vec_env
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize, DummyVecEnv
@@ -116,8 +117,9 @@ def train(threshold_pos=0.001,
     #print(contact_type)
     name = f'{softtissue}_{num_springs}_{youngs_modulus_name}_{seed}_{train_date}'
     model_name = f'model-{name}'
+    tag = 'force_minimisation'
     if log==1:
-        wandb.init(project="Chapter2-Results", name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
+        wandb.init(project="Chapter2-Results", name = (name),tags=[tag],notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     #print((f'{softtissue}-{train_date}-{num_springs}-{youngs_modulus}-{ran}'))
     env_kwargs = {
         'reward_type': 'sparse',
@@ -182,7 +184,7 @@ def train(threshold_pos=0.001,
             'test': False,
             'render_mode': 'direct'}
    
-    eval_env=make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed = eval_seed)
+    eval_env=make_vec_env('gym_fracture:anklesurg-v1', env_kwargs=eval_env_kwargs,n_envs=20,vec_env_cls=SubprocVecEnv, seed = eval_seed)
     
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     log_callback1 = log_callback.CustomCallback()
@@ -199,11 +201,15 @@ def train(threshold_pos=0.001,
         callback = [eval_callback, log_callback1]
     else:
         callback = [eval_callback]
-    model.learn(1_000_000, callback=callback)
+    model.learn(1_500_000, callback=callback)
     #save model name in log file
     with open('./logs/model_log.txt', 'w') as f:
         f.write(f'{model_name}\n')
-    #model.save(f'./models/{model_name}')
+
+    if f'./best_models/{ran}/{model_name}' not in os.listdir(f'./best_models/{ran}'):
+        model.save(f'./best_models/{ran}/{model_name}')
+        stats_path = os.path.join(f'./best_models/{ran}/{model_name}', "vec_normalize.pkl")
+        vec_env.save(stats_path)
     #model.save_replay_buffer(f'./models/{model_name}-rb')
    
     ## Evalulate the model using the FEM model 
@@ -274,19 +280,19 @@ def train(threshold_pos=0.001,
                             contacts.append(has_contact)
                             
                             episodes_collected += 1
-                            print(f"[{episodes_collected}/{num}] Env {i} Success: {is_success} Force: {info.get('force')} Pos: {info.get('pos_distance')} Angle: {info.get('angle')} Contact: {has_contact}, Success Rate: {sum(dones) / len(dones)}")
+                            print(f"[{episodes_collected}/{num}] Env {i} Success: {is_success} Force: {info.get('maximum_force')} Pos: {info.get('pos_distance')} Angle: {info.get('angle')} Contact: {has_contact}, Success Rate: {sum(dones) / len(dones)}")
                             ## If force >50 do not log to wandb as it is an outlier and can skew the results
                             # remove number of episodes collected from the success rate calculation in the log as well
-                            if info.get('force', 0) <= 50:
+                            if info.get('maximum_force', 0) <= 50:
                                     eps +=1
                             if log==1 :
                                 #table = wandb.Table(data = is_success,columns=["Episode", "Success"])
                                 #histogram = wandb.plot.Histogram(table,value='Success', title="Success Distribution")
-                                wandb.log({"Episode": episodes_collected,  "Contact": has_contact, "force": info.get('force', 0), "Position Distance": info.get('pos_distance', 0), "Angle Distance": info.get('angle', 0), "Success": is_success, "Success Rate": sum(dones) / len(dones)})
-                                if info.get('force', 0) <= 50:      
+                                wandb.log({"Episode": episodes_collected,  "Contact": has_contact, "force": info.get('maximum_force', 0), "Position Distance": info.get('pos_distance', 0), "Angle Distance": info.get('angle', 0), "Success": is_success, "Success Rate": sum(dones) / len(dones)})
+                                if info.get('maximum_force', 0) <= 50:      
                                     wandb.run.summary["final_success_rate"] = sum(dones) / eps
-                                    if info.get('force', 0) <= maxforce:
-                                        max_force = info.get('force', 0)
+                                    if info.get('maximum_force', 0) <= maxforce:
+                                        max_force = info.get('maximum_force', 0)
                                         max_forces.append(max_force)
                                         wandb.run.summary["max_force"] = max_force
                                         wandb.run.summary["Average baselines Force"] = sum(max_forces) / len(max_forces) ## want to see what the average max force is 
