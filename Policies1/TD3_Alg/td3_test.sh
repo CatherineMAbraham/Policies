@@ -22,7 +22,7 @@ echo "Running test with: Model=$MODEL"
 srun --export=ALL python td3_v1.py \
  --threshold_pos 0.0005 \
   --threshold_ori 0.5 \
-  --maxforce 4 \
+  --maxforce 5 \
  --model $MODEL \
  --seed $SEED \
   --log 1 \
