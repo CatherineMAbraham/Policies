@@ -15,7 +15,7 @@
 # module load Anaconda3/2024.02-1
 
 # source activate softsurg
-PYTHON_EXEC="/mnt/parscratch/users/cop21cma/anaconda/.envs/softsurg9/bin/python"
+PYTHON_EXEC="/users/cop21cma/.conda/envs/softsurg9/bin/python"
 # Read the correct line from params_curr_compare.csv
 TASK_ID=${SLURM_ARRAY_TASK_ID:-1}
 PARAM_LINE=$(sed -n "${TASK_ID}p" model_log.csv)
