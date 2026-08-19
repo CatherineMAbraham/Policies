@@ -4,14 +4,14 @@
 #SBATCH --ntasks=1            # 4 agents total
 #SBATCH --cpus-per-task=5      # 4 CPUs per agent
 #SBATCH --mem=80G              # 8GB RAM per agent
-#SBATCH --array=1-10
-#SBATCH --time=25:00:00
+#SBATCH --array=1-1
+#SBATCH --time=0:01:00
 #SBATCH --output=out_%A_%a.out
 
 
 module load Anaconda3/2024.02-1
 
-source activate softsurg
+source activate softsurg9
 #PYTHON_EXEC="/users/cop21cma/.conda/envs/softsurg9/bin/python"
 # Read the correct line from params_curr_compare.csv
 TASK_ID=${SLURM_ARRAY_TASK_ID:-1}
