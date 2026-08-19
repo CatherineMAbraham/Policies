@@ -291,7 +291,7 @@ def train(threshold_pos=0.001,
                             if log==1 :
                                 #table = wandb.Table(data = is_success,columns=["Episode", "Success"])
                                 #histogram = wandb.plot.Histogram(table,value='Success', title="Success Distribution")
-                                wandb.log({"Episode": episodes_collected,  "Contact": has_contact, "force": info.get('maximum_force', 0), "Position Distance": info.get('pos_distance', 0), "Angle Distance": info.get('angle', 0), "Success": is_success, "Success Rate": sum(dones) / len(dones)})
+                                wandb.log({"Episode": episodes_collected,  "Contact": has_contact, "force": info.get('maximum_force', 0),"average force": info.get('average_force', 0), "Position Distance": info.get('pos_distance', 0), "Angle Distance": info.get('angle', 0), "Success": is_success, "Success Rate": sum(dones) / len(dones)})
                                 if info.get('maximum_force', 0) <= 50:      
                                     wandb.run.summary["final_success_rate"] = sum(dones) / eps
                                     if info.get('maximum_force', 0) <= maxforce:
