@@ -327,11 +327,11 @@ def train(threshold_pos=0.001,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train TD3 model with specified thresholds and action type.')
-    parser.add_argument('--threshold_pos', type=float, default=0.005, help='Position threshold for the environment.')
+    parser.add_argument('--threshold_pos', type=float, default=0.0005, help='Position threshold for the environment.')
     parser.add_argument('--threshold_ori', type=float, default=0.05, help='Orientation threshold for the environment.')
     parser.add_argument('--action_type', type=str, default='euler', help='Type of action to use in the environment.')
     parser.add_argument('--render_mode', type=str, default="human", help='Render mode for the environment.')
-    parser.add_argument('--maxforce', type=float, default=4, help='Force threshold for the environment.')
+    parser.add_argument('--maxforce', type=float, default=5, help='Force threshold for the environment.')
     parser.add_argument('--softtissue', type=str, default="spring", help='Soft Tissue Type.')
     parser.add_argument('--num_springs', type=int, default=3, help='Number of springs for the soft tissue.')
     parser.add_argument('--contact_type', type=int, default=0, help='Type of contact for the environment.')
