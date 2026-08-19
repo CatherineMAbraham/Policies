@@ -236,7 +236,7 @@ def train(threshold_pos=0.001,
                 'render_mode': 'direct',
                 'test': True,}
     ran = 1 
-    model_name = {model}
+    model_name = model
     soft_eval_env = make_vec_env('gym_fracture:anklesurg-v1', n_envs=20, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
     stats_path = f'./best_models/{ran}/{model_name}/vec_normalize.pkl'
     soft_eval_env = VecNormalize.load(stats_path, soft_eval_env)
