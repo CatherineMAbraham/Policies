@@ -12,7 +12,7 @@
 #SBATCH --output=out_%A_%a.out
 
 
-PYTHON_EXEC="/mnt/parscratch/users/cop21cma/anaconda/.envs/softsurg9/bin/python"
+PYTHON_EXEC="/users/cop21cma/.conda/envs/softsurg9/bin/python"
 #source activate softsurg9
 # Read the correct line from params_curr_compare.csv
 TASK_ID=${SLURM_ARRAY_TASK_ID:-1}
