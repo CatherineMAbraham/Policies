@@ -4,15 +4,27 @@
 #SBATCH --ntasks=1            # 4 agents total
 #SBATCH --cpus-per-task=1      # 4 CPUs per agent
 #SBATCH --mem=20G              # 8GB RAM per agent
-#SBATCH --time=40:00:00
+#SBATCH --time=20:00:00
 #SBATCH --output=out_%A_%a.out
 
 
 module load Anaconda3/2024.02-1
 
-source activate softsurg
+source activate softsurg9
 # Read the correct line from params_curr_compare.csv
 
 # Run the script
 #srun --export=ALL 
-python td3_soft.py --threshold_pos 0.0005 --threshold_ori 0.5 --action_type euler --maxforce 3 --youngs_modulus_type None --youngs_modulus 1.5e6  --softtissue spring --contact_type 0 --render_mode 'direct'  --log 1
+python td3_soft.py \
+    --threshold_pos 0.0005 \
+    --threshold_ori 0.5 \
+    --action_type euler \
+    --maxforce 5 \
+    --num_springs 3 \
+    --youngs_modulus 5e5 \
+    --softtissue spring \
+    --render_mode 'direct' \
+    --youngs_modulus_type None \
+    --contact_type 1 \
+    --seed 1 \
+    --ran 1

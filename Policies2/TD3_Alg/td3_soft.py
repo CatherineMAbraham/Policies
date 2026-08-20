@@ -211,7 +211,7 @@ def train(threshold_pos=0.001,
                                                     model_name = model_name,
                                                     model_save_path=f'./best_models/{ran}')
     eval_callback = EvalCallback(eval_env,  eval_freq=10000,
-                                deterministic=True, n_eval_episodes=100,
+                                deterministic=True, n_eval_episodes=50,
                                 callback_after_eval=success_callback)
     if log == 1:
         callback = [eval_callback, log_callback1]
