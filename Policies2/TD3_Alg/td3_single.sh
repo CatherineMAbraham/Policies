@@ -3,7 +3,7 @@
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --ntasks=1            # 4 agents total
 #SBATCH --cpus-per-task=1      # 4 CPUs per agent
-#SBATCH --mem=20G              # 8GB RAM per agent
+#SBATCH --mem=80G              # 8GB RAM per agent
 #SBATCH --time=20:00:00
 #SBATCH --output=out_%A_%a.out
 
