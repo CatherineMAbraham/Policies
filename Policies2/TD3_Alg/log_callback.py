@@ -51,6 +51,7 @@ class CustomCallback(BaseCallback):
                                f'Youngs Modulus{j}': infos[j].get('young_modulus', 0),
                                f'Width{j}': infos[j].get('width', 0),
                                f'Contact_force{j}': infos[j].get('contact_force', 0),
+                               f'Contact_distance{j}': infos[j].get('contact_distance', 0),
                                f'maximum_force{j}':infos[j].get('maximum_force',0)})
                     #print(f"Max Force{j}: {infos[j].get('force')}, Contact{j}: {infos[j].get('contact')}")
         return True
