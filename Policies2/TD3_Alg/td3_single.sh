@@ -23,8 +23,8 @@ python td3_soft.py \
     --num_springs 3 \
     --youngs_modulus 5e5 \
     --softtissue spring \
-    --render_mode 'direct' \
-    --youngs_modulus_type None \
+    --render_mode 'human' \
+    --youngs_modulus_type testing \
     --contact_type 1 \
     --seed 1 \
     --ran 1
