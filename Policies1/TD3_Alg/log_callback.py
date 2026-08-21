@@ -30,28 +30,27 @@ class CustomCallback(BaseCallback):
         # self.parent = None  # type: Optional[BaseCallback]
 
     def _on_step(self) -> bool:
-        """
-        This method will be called by the model after each call to `env.step()`.
-
-        For child callback (of an `EventCallback`), this will be called
-        when the event is triggered.
-
-        :return: If the callback returns False, training is aborted early.
-        """
-
         if 'infos' in self.locals:
             infos = self.locals['infos']
+            log_dict = {}
+
             for j in range(len(infos)):
+                # Logged EVERY step
+                log_dict[f'step_force{j}'] = infos[j].get('force', 0)
+
+                # Logged ONLY when an episode ends
                 if self.locals['dones'][j]:
-                    wandb.log({f'step_force{j}': infos[j].get('force', 0), 
-                               f'Holding{j}': infos[j].get('isHolding', 0),
-                               f'Contact{j}': infos[j].get('contact', 0),
-                               f'Position Distance{j}': infos[j].get('pos_distance', 0),
-                               f'Angle Distance{j}': infos[j].get('angle', 0),
-                               f'Youngs Modulus{j}': infos[j].get('young_modulus', 0),
-                               f'Width{j}': infos[j].get('width', 0),
-                               f'maximum_force{j}':infos[j].get('maximum_force',0)})
-                    #print(f"Max Force{j}: {infos[j].get('force')}, Contact{j}: {infos[j].get('contact')}")
+                    log_dict[f'Holding{j}'] = infos[j].get('isHolding', 0)
+                    log_dict[f'Contact{j}'] = infos[j].get('contact', 0)
+                    log_dict[f'Position Distance{j}'] = infos[j].get('pos_distance', 0)
+                    log_dict[f'Angle Distance{j}'] = infos[j].get('angle', 0)
+                    log_dict[f'Youngs Modulus{j}'] = infos[j].get('young_modulus', 0)
+                    log_dict[f'Width{j}'] = infos[j].get('width', 0)
+                    log_dict[f'maximum_force{j}'] = infos[j].get('maximum_force', 0)
+
+            # Single log call anchors all metrics to the exact environment timestep
+            wandb.log(log_dict, step=self.num_timesteps)
+
         return True
 
     
