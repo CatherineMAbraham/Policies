@@ -267,7 +267,7 @@ def train(threshold_pos=0.001,
                 info = info_list[i]
                 force = info.get('force', 0)
                 forces.append(force)
-                wandb.log('Step Force', force)
+                wandb.log({'Step Force': force})
             for i in range(soft_eval_env.num_envs):
                     if dones_array[i]:
                             info = info_list[i]
