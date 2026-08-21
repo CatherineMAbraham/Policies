@@ -258,7 +258,7 @@ def train(threshold_pos=0.001,
     episodes_collected = 0
     obs = soft_eval_env.reset()
     max_forces = []
-    
+    forces = []
     eps = 0
     while episodes_collected < num:
             action, _ = eval_model.predict(obs, deterministic=True)
@@ -297,8 +297,11 @@ def train(threshold_pos=0.001,
                                     if info.get('maximum_force', 0) <= maxforce:
                                         max_force = info.get('maximum_force', 0)
                                         max_forces.append(max_force)
+                                        force = info.get('force', 0)
+                                        forces.append(force)
                                         wandb.run.summary["max_force"] = max_force
-                                        wandb.run.summary["Average baselines Force"] = sum(max_forces) / len(max_forces) ## want to see what the average max force is 
+                                        wandb.run.summary["Average Max Force"] = sum(max_forces) / len(max_forces) ## want to see what the average max force is 
+                                        wandb.run.summary["Average Force"] = sum(forces) / len(forces) ## want to see what the average max force is
                                         wandb.run.summary['Fail With Contact'] = sum(1 for d, c in zip(dones, contacts) if not d and c)
                                         wandb.run.summary['Fail Without Contact'] = sum(1 for d, c in zip(dones, contacts) if not d and not c)
                                         wandb.run.summary['Success With Contact'] = sum(1 for d, c in zip(dones, contacts) if d and c)

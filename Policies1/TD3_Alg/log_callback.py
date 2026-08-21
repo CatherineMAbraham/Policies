@@ -43,7 +43,7 @@ class CustomCallback(BaseCallback):
             infos = self.locals['infos']
             for j in range(len(infos)):
                 if self.locals['dones'][j]:
-                    wandb.log({f'max_force{j}': infos[j].get('force', 0), 
+                    wandb.log({f'step_force{j}': infos[j].get('force', 0), 
                                f'Holding{j}': infos[j].get('isHolding', 0),
                                f'Contact{j}': infos[j].get('contact', 0),
                                f'Position Distance{j}': infos[j].get('pos_distance', 0),
