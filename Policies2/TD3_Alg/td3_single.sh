@@ -2,9 +2,9 @@
 #SBATCH --mail-user=cmabraham1@sheffield.ac.uk
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --ntasks=1            # 4 agents total
-#SBATCH --cpus-per-task=1      # 4 CPUs per agent
+#SBATCH --cpus-per-task=5      # 4 CPUs per agent
 #SBATCH --mem=80G              # 8GB RAM per agent
-#SBATCH --time=20:00:00
+#SBATCH --time=30:00:00
 #SBATCH --output=out_%A_%a.out
 
 
@@ -25,6 +25,7 @@ python td3_soft.py \
     --softtissue spring \
     --render_mode 'human' \
     --youngs_modulus_type testing \
+    --randomise_num_springs 1 \
     --contact_type 1 \
     --seed 1 \
     --ran 1

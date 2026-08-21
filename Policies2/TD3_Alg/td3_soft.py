@@ -126,6 +126,7 @@ def train(threshold_pos=0.001,
          name = f'{softtissue}-{train_date}-{num_springs}-{youngs_modulus}-{ran}'
     randomise_ligs = True if randomise_ligs == 1 else False
     randomise_start = True if randomise_start == 1 else False
+    randomise_num_springs = True if randomise_num_springs == 1 else False
     #print(youngs_modulus)  |
     #print(contact_type)
     #name = f'{softtissue}_{randomise_start}_{randomise_ligs}-{seed}'
@@ -200,9 +201,10 @@ def train(threshold_pos=0.001,
                     'youngs_modulus_type': youngs_modulus_type,
                     'randomise_start':randomise_start,
                     'randomise_ligs':randomise_ligs,
+                    'randomise_num_springs': randomise_num_springs,
                     'render_mode': 'direct'}
     
-    eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
+    eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=20, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
     
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     log_callback1 = log_callback.CustomCallback()
