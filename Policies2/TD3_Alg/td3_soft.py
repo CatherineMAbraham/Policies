@@ -87,6 +87,7 @@ def train(threshold_pos=0.001,
           youngs_modulus_type = 'testing',
           randomise_ligs=False,
           randomise_start=False,
+          randomise_num_springs=False,
           log=True,
           seed=0):
     render_mode = render_mode
@@ -151,6 +152,7 @@ def train(threshold_pos=0.001,
         'test': False,
         'youngs_modulus_type': youngs_modulus_type,
         'randomise_ligs':randomise_ligs,
+        'randomise_num_springs':randomise_num_springs,
         'randomise_start':randomise_start,
         'render_mode': render_mode}
         #"0.025 -0.04 0" rpy="0 1.57 0"
@@ -249,7 +251,7 @@ def train(threshold_pos=0.001,
     #model_name = 'model-spring_0_testing-7'
     #ran = 1
     #model_name = 'model-spring_randomYM_08161518_1'#'model-spring_contact_08162136_1'
-    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
+    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=10, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
     stats_path = f'./best_models/{ran}/{model_name}/vec_normalize.pkl'
     soft_eval_env = VecNormalize.load(stats_path, soft_eval_env)
 
@@ -269,54 +271,67 @@ def train(threshold_pos=0.001,
     num = 1000
     episodes_collected = 0
     obs = soft_eval_env.reset()
+    forces = []
     max_forces = []
-    
     eps = 0
     while episodes_collected < num:
-            action, _ = eval_model.predict(obs, deterministic=True)
-            obs, reward, dones_array, info_list = soft_eval_env.step(action)
+        forces = []
+        action, _ = eval_model.predict(obs, deterministic=True)
+        obs, reward, dones_array, info_list = soft_eval_env.step(action)
+        for i in range(soft_eval_env.num_envs):
+            info = info_list[i]
+            force = info.get('force', 0)
+            contact_at_step = info.get('contact', False)
+            forces.append(force)
+            wandb.log({'Step Force': force})
+            if contact_at_step:
+                wandb.log({'Contact at Step': 1})
+        for i in range(soft_eval_env.num_envs):
+                if dones_array[i]:
+                        info = info_list[i]
+                        
+                        # 1. Get the actual final observation (before the auto-reset)
+                        # This is critical if you want to calculate metrics manually
+                        final_obs = info.get("terminal_observation")
+                        
+                        # 2. Get the success flag provided by the environment/Monitor
+                        is_success = info.get("is_success", False)
+                        
+                        # 3. Get your custom 'contact' metric
+                        # Note: Ensure your env puts 'contact' in the info dict even on the final step!
+                        has_contact = info.get("contact", False)
+                        
+                        dones.append(is_success)
+                        contacts.append(has_contact)
+                        
+                        episodes_collected += 1
+                        print(f"[{episodes_collected}/{num}] Env {i} Success: {is_success} Force: {info.get('maximum_force')} Pos: {info.get('pos_distance')} Angle: {info.get('angle')} Contact: {has_contact}, Success Rate: {sum(dones) / len(dones)}")
+                        ## If force >50 do not log to wandb as it is an outlier and can skew the results
+                        # remove number of episodes collected from the success rate calculation in the log as well
+                        if info.get('maximum_force', 0) <= 50:
+                                eps +=1
+                        if log==1 :
+                            #table = wandb.Table(data = is_success,columns=["Episode", "Success"])
+                            #histogram = wandb.plot.Histogram(table,value='Success', title="Success Distribution")
+                            wandb.log({"Episode_Soft": episodes_collected,  "Contact_Soft": has_contact, "Max_Force_Soft": info.get('maximum_force', 0), 
+                                        "Position Distance Soft": info.get('pos_distance', 0), "Angle Distance Soft": info.get('angle', 0), 
+                                            "Success": is_success, "Success Rate": sum(dones) / len(dones),
+                                            'Contact Force':info.get('contact_force', 0)})
+                            if info.get('maximum_force', 0) <= 50:      
+                                wandb.run.summary["final_success_rate"] = sum(dones) / eps
+                                if info.get('maximum_force', 0) <= maxforce:
+                                    max_force = info.get('maximum_force', 0)
+                                    max_forces.append(max_force)
+                                    wandb.run.summary["max_force"] = max_force
+                                    wandb.run.summary["Average Max Force"] = sum(max_forces) / len(max_forces) ## want to see what the average max force is 
+                                    wandb.run.summary["Average Force"] = sum(forces) / len(forces) ## want to see what the average force is
+                                    wandb.run.summary['Fail With Contact'] = sum(1 for d, c in zip(dones, contacts) if not d and c)
+                                    wandb.run.summary['Fail Without Contact'] = sum(1 for d, c in zip(dones, contacts) if not d and not c)
+                                    wandb.run.summary['Success With Contact'] = sum(1 for d, c in zip(dones, contacts) if d and c)
+                                    wandb.run.summary['Success Without Contact'] = sum(1 for d, c in zip(dones, contacts) if d and not c)
+                        if episodes_collected >= num:
+                                break
             
-            for i in range(soft_eval_env.num_envs):
-                    if dones_array[i]:
-                            info = info_list[i]
-                            
-                            # 1. Get the actual final observation (before the auto-reset)
-                            # This is critical if you want to calculate metrics manually
-                            final_obs = info.get("terminal_observation")
-                            
-                            # 2. Get the success flag provided by the environment/Monitor
-                            is_success = info.get("is_success", False)
-                            
-                            # 3. Get your custom 'contact' metric
-                            # Note: Ensure your env puts 'contact' in the info dict even on the final step!
-                            has_contact = info.get("contact", False)
-                            
-                            dones.append(is_success)
-                            contacts.append(has_contact)
-                            
-                            episodes_collected += 1
-                            print(f"[{episodes_collected}/{num}] Env {i} Success: {is_success} Force: {info.get('max_force')} Pos: {info.get('pos_distance')} Angle: {info.get('angle')} Contact: {has_contact}, Success Rate: {sum(dones) / len(dones)}")
-                            ## If force >50 do not log to wandb as it is an outlier and can skew the results
-                            # remove number of episodes collected from the success rate calculation in the log as well
-                            if info.get('force', 0) <= 50:
-                                    eps +=1
-                            if log==1 :
-                                #table = wandb.Table(data = is_success,columns=["Episode", "Success"])
-                                #histogram = wandb.plot.Histogram(table,value='Success', title="Success Distribution")
-                                wandb.log({"Episode": episodes_collected,  "Contact": has_contact, "force": info.get('max_force', 0), "Position Distance": info.get('pos_distance', 0), "Angle Distance": info.get('angle', 0), "Success": is_success, "Success Rate": sum(dones) / len(dones)})
-                                if info.get('force', 0) <= 50:      
-                                    wandb.run.summary["final_success_rate"] = sum(dones) / eps
-                                    if info.get('force', 0) <= maxforce:
-                                        max_force = info.get('force', 0)
-                                        max_forces.append(max_force)
-                                        wandb.run.summary["max_force"] = max_force
-                                        wandb.run.summary["Average baselines Force"] = sum(max_forces) / len(max_forces) ## want to see what the average max force is 
-                                        wandb.run.summary['Fail With Contact'] = sum(1 for d, c in zip(dones, contacts) if not d and c)
-                                        wandb.run.summary['Fail Without Contact'] = sum(1 for d, c in zip(dones, contacts) if not d and not c)
-                                        wandb.run.summary['Success With Contact'] = sum(1 for d, c in zip(dones, contacts) if d and c)
-                                        wandb.run.summary['Success Without Contact'] = sum(1 for d, c in zip(dones, contacts) if d and not c)
-                            if episodes_collected >= num:
-                                    break
     
     print("\nEvaluation complete. Cleaning up resources to save memory...")
 
@@ -353,6 +368,7 @@ if __name__ == "__main__":
     parser.add_argument('--youngs_modulus_type', type=str, default='eval_mode', help='Type of Young\'s modulus for the soft tissue.')
     parser.add_argument('--randomise_ligs', type=int, default=0, help='Whether to randomise ligaments for the environment.')
     parser.add_argument('--randomise_start', type=int, default=0, help='Whether to randomise the starting position for the environment.')
+    parser.add_argument('--randomise_num_springs', type=int, default=0, help='Whether to randomise the number of springs for the environment.')
     parser.add_argument('--ran', type=str, default="1", help='Random seed for the run.')
     parser.add_argument('--log', type=int, default=0, help='Whether to log the training run to W&B.')
     parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducibility.')
