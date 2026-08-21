@@ -9,7 +9,7 @@
 
 
 module load Anaconda3/2024.02-1
-source activate softsurg
+source activate softsurg9
 # Read the correct line from params_curr_compare.csv
 TASK_ID=${SLURM_ARRAY_TASK_ID:-1}
 PARAM_LINE=$(sed -n "${TASK_ID}p" tests.csv)
