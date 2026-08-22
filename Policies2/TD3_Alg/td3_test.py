@@ -129,7 +129,7 @@ def train(threshold_pos=0.001,
     #print(contact_type)
     #name = f'{softtissue}_{randomise_start}_{randomise_ligs}-{seed}'
     model_name = f'model-{name}'
-    log =0
+    log =1
     if log==1:
         wandb.init(project="Chapter3-Test", name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     #print((f'{softtissue}-{train_date}-{num_springs}-{youngs_modulus}-{ran}'))
