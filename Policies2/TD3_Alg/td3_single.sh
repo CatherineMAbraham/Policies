@@ -25,7 +25,6 @@ python td3_test.py \
     --softtissue spring \
     --render_mode 'human' \
     --youngs_modulus_type testing \
-    --randomise_num_springs 1 \
     --contact_type 1 \
     --seed 1 \
     --ran 1
