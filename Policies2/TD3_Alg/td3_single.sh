@@ -25,6 +25,6 @@ python td3_soft.py \
     --softtissue spring \
     --render_mode 'direct' \
     --youngs_modulus_type None \
-    --contact_type 1 \
+    --contact_type 0 \
     --seed 1 \
     --ran 1
