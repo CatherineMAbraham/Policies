@@ -244,7 +244,7 @@ def train(threshold_pos=0.001,
                 'maxforce': 5,
                 'contact_type' : 1,
                 'start_pos' : 'home',
-                'render_mode': 'human',
+                'render_mode': 'direct',
                 'test': True,}
     #ran = 18
     #model_name = 'model-spring_0_testing-7'
