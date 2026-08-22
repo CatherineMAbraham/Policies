@@ -117,7 +117,7 @@ def train(threshold_pos=0.001,
     if youngs_modulus_type == 'testing':
          name = f'{softtissue}_randomYM_{train_date}_{seed}'
     elif contact_type == 1:
-            name = f'{softtissue}_contact_{train_date}_{seed}'
+            name = f'{softtissue}_contact_{threshold_pos}_{train_date}_{seed}'
     elif randomise_ligs == 1:
             name = f'{softtissue}_randomligs_{train_date}_{seed}'
     elif randomise_start == 1:
