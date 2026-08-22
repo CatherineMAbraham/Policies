@@ -132,7 +132,7 @@ def train(threshold_pos=0.001,
     #name = f'{softtissue}_{randomise_start}_{randomise_ligs}-{seed}'
     model_name = f'model-{name}'
     if log==1:
-        wandb.init(project="Chapter3-Test", name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
+        wandb.init(project="Chapter3-Results", name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     #print((f'{softtissue}-{train_date}-{num_springs}-{youngs_modulus}-{ran}'))
     env_kwargs = {
         'reward_type': 'sparse',
@@ -209,7 +209,7 @@ def train(threshold_pos=0.001,
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     log_callback1 = log_callback.CustomCallback()
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
-                                                    max_no_improvement_evals=10, 
+                                                    max_no_improvement_evals=5, 
                                                     success_threshold=0.95,  
                                                     min_evals=1, verbose=1, 
                                                     model_name = model_name,
@@ -221,7 +221,7 @@ def train(threshold_pos=0.001,
         callback = [eval_callback, log_callback1]
     else:
         callback = [eval_callback]
-    model.learn(2_000_000, callback=callback)
+    model.learn(1_500_000, callback=callback)
     # #save model name in log file
     # with open('./logs/model_log.txt', 'w') as f:
     #     f.write(f'{model_name}\n')
@@ -278,14 +278,16 @@ def train(threshold_pos=0.001,
     success_contact_forces = []
     fail_contact_forces = []
     eps = 0
-    all_step_contact_forces = []  # Logs step environment contact force
-    all_step_agent_forces = []    # Logs step applied agent force
+
+    all_step_contact_forces = []    # Logs all step contact forces (including 0.0)
+    all_step_agent_forces = []      # Logs all step applied agent forces
+    all_active_contact_forces = []  # Logs step contact force only when contact is active (>0.5N)
 
     # Episode Contact Force summaries split by outcome
-    succ_with_contact_forces = []    # Max contact force for Success + Contact
-    succ_without_contact_forces = [] # Max contact force for Success + No Contact
-    fail_with_contact_forces = []    # Max contact force for Fail + Contact
-    fail_without_contact_forces = [] # Max contact force for Fail + No Contact
+    succ_with_contact_forces = []    
+    succ_without_contact_forces = [] 
+    fail_with_contact_forces = []    
+    fail_without_contact_forces = [] 
 
     # Episode Agent Force summaries split by outcome
     succ_with_contact_agent_forces = []
@@ -293,7 +295,7 @@ def train(threshold_pos=0.001,
     fail_with_contact_agent_forces = []
     fail_without_contact_agent_forces = []
 
-    # --- PER-ENV BUFFERS (Outside while loop) ---
+    # --- PER-ENV BUFFERS ---
     env_step_contact_forces = [[] for _ in range(soft_eval_env.num_envs)]
     env_step_agent_forces = [[] for _ in range(soft_eval_env.num_envs)]
 
@@ -301,7 +303,7 @@ def train(threshold_pos=0.001,
         action, _ = eval_model.predict(obs, deterministic=True)
         obs, reward, dones_array, info_list = soft_eval_env.step(action)
         
-        # 1. STEP-LEVEL TRACKING (Both Contact & Agent Force)
+        # 1. STEP-LEVEL TRACKING
         for i in range(soft_eval_env.num_envs):
             info = info_list[i]
             
@@ -313,6 +315,10 @@ def train(threshold_pos=0.001,
             
             all_step_contact_forces.append(step_contact_force)
             all_step_agent_forces.append(step_agent_force)
+            
+            # Threshold aligned with your environment's 0.5N filter
+            if step_contact_force > 0.5:
+                all_active_contact_forces.append(step_contact_force)
             
             if log == 1:
                 wandb.log({
@@ -384,6 +390,7 @@ def train(threshold_pos=0.001,
                     # Global Mean Step Forces across all runs
                     wandb.run.summary['Force / Overall Mean Contact Force'] = sum(all_step_contact_forces) / len(all_step_contact_forces) if all_step_contact_forces else 0.0
                     wandb.run.summary['Force / Overall Mean Agent Force'] = sum(all_step_agent_forces) / len(all_step_agent_forces) if all_step_agent_forces else 0.0
+                    wandb.run.summary['Force / Overall Mean Contact Force (Active)'] = sum(all_active_contact_forces) / len(all_active_contact_forces) if all_active_contact_forces else 0.0
                     
                     # Contact Force Summaries (Avg Max)
                     if succ_with_contact_forces:
@@ -407,11 +414,9 @@ def train(threshold_pos=0.001,
 
                 if episodes_collected >= num:
                     break
-            
-    
-    print("\nEvaluation complete. Cleaning up resources to save memory...")
 
-    # 1. Close the evaluation environments to free up system/subprocess RAM
+    # --- CLEANUP (Outside the while loop) ---
+    print("\nEvaluation complete. Cleaning up resources to save memory...")
     soft_eval_env.close()
 
     # 2. Delete model and environment variables from Python memory, then force GC
