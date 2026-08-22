@@ -129,7 +129,7 @@ def train(threshold_pos=0.001,
     #print(contact_type)
     #name = f'{softtissue}_{randomise_start}_{randomise_ligs}-{seed}'
     model_name = f'model-{name}'
-    log =1
+    log =0
     if log==1:
         wandb.init(project="Chapter3-Test", name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     #print((f'{softtissue}-{train_date}-{num_springs}-{youngs_modulus}-{ran}'))
@@ -238,7 +238,7 @@ def train(threshold_pos=0.001,
                 'number_of_springs': num_springs,
                 'youngs_modulus': 1.5e6,
                 'vtk_file': vtk_file,
-                #'youngs_modulus_type': youngs_modulus_type,
+                'youngs_modulus_type': youngs_modulus_type,
                 'patient': 110,
                 'action_type': 'euler',
                 'maxforce': 5,
@@ -249,8 +249,8 @@ def train(threshold_pos=0.001,
     #ran = 18
     #model_name = 'model-spring_0_testing-7'
     #ran = 1
-    model_name = 'model-spring_randomYM_08211841_1'#'model-spring_contact_08162136_1'
-    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=10, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
+    model_name = 'model-spring_randomYM_08210959_1'#'model-spring_contact_08162136_1'
+    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
     stats_path = f'./best_models/{ran}/{model_name}/vec_normalize.pkl'
     soft_eval_env = VecNormalize.load(stats_path, soft_eval_env)
 
@@ -267,23 +267,25 @@ def train(threshold_pos=0.001,
 
     dones = []
     contacts = []
+    explosions = []
     num = 1000
     episodes_collected = 0
     obs = soft_eval_env.reset()
-    max_forces = []
     forces = []
+    max_forces = []
+    success_contact_forces = []
+    fail_contact_forces = []
     eps = 0
-    # --- GLOBAL ACCUMULATORS (Outside while loop) ---
-    # --- GLOBAL ACCUMULATORS (Outside while loop) ---
-    # --- GLOBAL ACCUMULATORS (Outside while loop) ---
-    all_step_contact_forces = []  # Logs step environment contact force
-    all_step_agent_forces = []    # Logs step applied agent force
+
+    all_step_contact_forces = []    # Logs all step contact forces (including 0.0)
+    all_step_agent_forces = []      # Logs all step applied agent forces
+    all_active_contact_forces = []  # Logs step contact force only when contact is active (>0.5N)
 
     # Episode Contact Force summaries split by outcome
-    succ_with_contact_forces = []    # Max contact force for Success + Contact
-    succ_without_contact_forces = [] # Max contact force for Success + No Contact
-    fail_with_contact_forces = []    # Max contact force for Fail + Contact
-    fail_without_contact_forces = [] # Max contact force for Fail + No Contact
+    succ_with_contact_forces = []    
+    succ_without_contact_forces = [] 
+    fail_with_contact_forces = []    
+    fail_without_contact_forces = [] 
 
     # Episode Agent Force summaries split by outcome
     succ_with_contact_agent_forces = []
@@ -291,7 +293,7 @@ def train(threshold_pos=0.001,
     fail_with_contact_agent_forces = []
     fail_without_contact_agent_forces = []
 
-    # --- PER-ENV BUFFERS (Outside while loop) ---
+    # --- PER-ENV BUFFERS ---
     env_step_contact_forces = [[] for _ in range(soft_eval_env.num_envs)]
     env_step_agent_forces = [[] for _ in range(soft_eval_env.num_envs)]
 
@@ -299,7 +301,7 @@ def train(threshold_pos=0.001,
         action, _ = eval_model.predict(obs, deterministic=True)
         obs, reward, dones_array, info_list = soft_eval_env.step(action)
         
-        # 1. STEP-LEVEL TRACKING (Both Contact & Agent Force)
+        # 1. STEP-LEVEL TRACKING
         for i in range(soft_eval_env.num_envs):
             info = info_list[i]
             
@@ -311,6 +313,10 @@ def train(threshold_pos=0.001,
             
             all_step_contact_forces.append(step_contact_force)
             all_step_agent_forces.append(step_agent_force)
+            
+            # Threshold aligned with your environment's 0.5N filter
+            if step_contact_force > 0.5:
+                all_active_contact_forces.append(step_contact_force)
             
             if log == 1:
                 wandb.log({
@@ -324,7 +330,8 @@ def train(threshold_pos=0.001,
                 info = info_list[i]
                 is_success = info.get("is_success", False)
                 has_contact = info.get("contact", False)
-                
+                has_exploded = info.get("exploded", False)
+
                 # Contact Forces
                 ep_c_forces = env_step_contact_forces[i]
                 ep_max_contact_force = max(ep_c_forces) if ep_c_forces else 0.0
@@ -337,6 +344,7 @@ def train(threshold_pos=0.001,
                 
                 dones.append(is_success)
                 contacts.append(has_contact)
+                explosions.append(has_exploded)
                 
                 # Categorize Max Contact & Agent Forces by Episode Outcome
                 if is_success and has_contact:
@@ -359,7 +367,8 @@ def train(threshold_pos=0.001,
                 # Reset local step buffers for this environment
                 env_step_contact_forces[i] = []
                 env_step_agent_forces[i] = []
-
+                valid_dones = [d for d, e in zip(dones, explosions) if not e]
+                not_exploded_success_rate = (sum(valid_dones) / len(valid_dones)) if len(valid_dones) > 0 else 0.0
                 # 3. WANDB LOGGING & SUMMARY UPDATES
                 if log == 1:
                     wandb.log({
@@ -370,7 +379,8 @@ def train(threshold_pos=0.001,
                         "Episode Avg Contact Force": ep_avg_contact_force,
                         "Episode Max Agent Force": ep_max_agent_force,
                         "Episode Avg Agent Force": ep_avg_agent_force,
-                        "Success Rate": sum(dones) / len(dones)
+                        "Success Rate": sum(dones) / len(dones),
+                        "Not Exploded Success Rate": not_exploded_success_rate
                     })
 
                     # Counts
@@ -382,6 +392,7 @@ def train(threshold_pos=0.001,
                     # Global Mean Step Forces across all runs
                     wandb.run.summary['Force / Overall Mean Contact Force'] = sum(all_step_contact_forces) / len(all_step_contact_forces) if all_step_contact_forces else 0.0
                     wandb.run.summary['Force / Overall Mean Agent Force'] = sum(all_step_agent_forces) / len(all_step_agent_forces) if all_step_agent_forces else 0.0
+                    wandb.run.summary['Force / Overall Mean Contact Force (Active)'] = sum(all_active_contact_forces) / len(all_active_contact_forces) if all_active_contact_forces else 0.0
                     
                     # Contact Force Summaries (Avg Max)
                     if succ_with_contact_forces:
@@ -405,9 +416,6 @@ def train(threshold_pos=0.001,
 
                 if episodes_collected >= num:
                     break
-        
-    
-    print("\nEvaluation complete. Cleaning up resources to save memory...")
 
     # 1. Close the evaluation environments to free up system/subprocess RAM
     soft_eval_env.close()
