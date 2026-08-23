@@ -76,6 +76,7 @@ def get_width():
 
 def train(threshold_pos=0.001, 
           threshold_ori=np.deg2rad(6), 
+          max_contact_force_threshold=0.5,
           action_type='euler', 
           render_mode='human',
           maxforce=4, 
@@ -151,6 +152,7 @@ def train(threshold_pos=0.001,
         'softtissue':softtissue,
         'patient':110,
         'test': False,
+        'maximum_contact_force_threshold':max_contact_force_threshold,
         'youngs_modulus_type': youngs_modulus_type,
         'randomise_ligs':randomise_ligs,
         'randomise_num_springs':randomise_num_springs,
@@ -196,6 +198,7 @@ def train(threshold_pos=0.001,
                     'contact_type' :contact_type,
                     'number_of_springs':num_springs,
                     'softtissue':softtissue,
+                    'maximum_contact_force_threshold':max_contact_force_threshold,
                     'patient':110,
                     'test': False,
                     'youngs_modulus_type': youngs_modulus_type,
@@ -204,7 +207,7 @@ def train(threshold_pos=0.001,
                     'randomise_num_springs': randomise_num_springs,
                     'render_mode': 'direct'}
     
-    eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=20, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
+    eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=10, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
     
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     log_callback1 = log_callback.CustomCallback()
@@ -237,6 +240,7 @@ def train(threshold_pos=0.001,
                 'dt': 0.001,
                 'dr':0.01,
                 'distance_threshold_ori': threshold_ori,
+                'maximum_contact_force_threshold':max_contact_force_threshold,
                 'softtissue': 'soft',
                 'number_of_springs': num_springs,
                 'youngs_modulus': 1.5e6,
@@ -439,6 +443,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train TD3 model with specified thresholds and action type.')
     parser.add_argument('--threshold_pos', type=float, default=0.005, help='Position threshold for the environment.')
     parser.add_argument('--threshold_ori', type=float, default=0.05, help='Orientation threshold for the environment.')
+    parser.add_argument('--maximum_contact_force_threshold', type=float, default=0.5, help='Maximum contact force threshold for the environment.')
     parser.add_argument('--action_type', type=str, default='euler', help='Type of action to use in the environment.')
     parser.add_argument('--render_mode', type=str, default="human", help='Render mode for the environment.')
     parser.add_argument('--maxforce', type=float, default=4, help='Force threshold for the environment.')
@@ -462,6 +467,7 @@ if __name__ == "__main__":
           num_springs=args.num_springs,
           contact_type=args.contact_type,
           softtissue=args.softtissue, 
+          max_contact_force_threshold=args.maximum_contact_force_threshold,
           ran=args.ran,
           log=args.log,
           youngs_modulus=args.youngs_modulus,

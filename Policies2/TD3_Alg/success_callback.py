@@ -1,14 +1,12 @@
 import os
 import numpy as np
-import wandb
 from stable_baselines3.common.callbacks import BaseCallback, EvalCallback
+import wandb
 
 class StopTrainingOnSuccessRate(BaseCallback):
     """
-    Stops training if:
-    1. Success rate reaches 1.0 (100%) IMMEDIATELY.
-    2. Success rate reaches `success_threshold` AND fails to improve for 
-       `max_no_improvement_evals` consecutive evaluations.
+    Stop training early once success rate reaches a threshold, or if there is no 
+    improvement for N consecutive evaluations. Saves the model when success rate is >= 90%.
     """
     parent: EvalCallback
 
@@ -27,7 +25,6 @@ class StopTrainingOnSuccessRate(BaseCallback):
         self.success_threshold = success_threshold
         self.best_success_rate = -np.inf
         self.no_improvement_evals = 0
-        self.eval_count = 0
         self.model_save_path = model_save_path
         self.model_name = model_name
         self.threshold_met = False
@@ -43,74 +40,59 @@ class StopTrainingOnSuccessRate(BaseCallback):
         stats_path = os.path.join(self.model_path, "vec_normalize.pkl")
         self.vec_env.save(stats_path)
         
-        if hasattr(model, "save_replay_buffer"):
-            rb_path = os.path.join(self.model_path, f"{self.model_name}-rb")
-            model.save_replay_buffer(rb_path)
+        # Save replay buffer if it exists (e.g., DQN, SAC, TD3)
+        # don't need this for eval so saves space 
+        # if hasattr(model, "save_replay_buffer"):
+        #     rb_path = os.path.join(self.model_path, f"{self.model_name}-rb.zip")
+        #     model.save_replay_buffer(rb_path)
             
         if self.verbose >= 1:
             print(f"Model and env stats saved to {self.model_path}")
-
+        
     def _on_step(self) -> bool:
-        # Step handler must return True to maintain normal environment stepping
-        return True
+        assert self.parent is not None, "StopTrainingOnSuccessRate must be used as a callback inside EvalCallback"
 
-    def _on_event(self) -> bool:
-        """Called by EvalCallback immediately after evaluation finishes."""
-        assert self.parent is not None, "StopTrainingOnSuccessRate must be passed as callback_after_eval inside EvalCallback"
+        continue_training = True
+        #print('Evaluation step: ', self.n_calls)
+        # Ensure this code only evaluates during an actual evaluation step, 
+        # not every single environment step (which would destroy performance).
+        if self.n_calls > self.min_evals:
+            success_rate = np.mean(self.parent._is_success_buffer)
 
-        self.eval_count += 1
-
-        # Extract success rate from evaluation buffer
-        if len(self.parent._is_success_buffer) == 0:
-            return True
-            
-        success_rate = float(np.mean(self.parent._is_success_buffer))
-
-        # --- IMMEDIATE HARD STOP AT 100% SUCCESS ---
-        # Bypasses min_evals checks to stop training instantly on a perfect evaluation run
-        if success_rate >= 1.0:
-            if self.verbose >= 1:
-                print("\n" + "="*50)
-                print("PERFECT SCORE: 100% success rate reached!")
-                print("Saving final model and stopping training IMMEDIATELY.")
-                print("="*50 + "\n")
-            
-            self.best_success_rate = 1.0
-            self.save_model(self.parent.model)
-            if wandb.run is not None:
-                wandb.summary['best_success_rate'] = 1.0
-            
-            return False  # Returning False instantly terminates model.learn()
-
-        # Respect min_evals for non-perfect evaluation checks
-        if self.eval_count <= self.min_evals:
-            return True
-
-        # Check if target success threshold met
-        if success_rate >= self.success_threshold:
-            self.threshold_met = True
-
-        # Track best success rate & save model
-        if success_rate > self.best_success_rate:
-            self.best_success_rate = success_rate
-            self.no_improvement_evals = 0
-            
-            if self.verbose >= 1:
-                print(f"New best success rate: {self.best_success_rate:.2f}. Saving model...")
-            self.save_model(self.parent.model)
-            if wandb.run is not None:
-                wandb.summary['best_success_rate'] = self.best_success_rate
-        else:
-            # Increment patience counter post-threshold
-            if self.threshold_met:
-                self.no_improvement_evals += 1
+            # 1. Check if we reached the ultimate stopping success threshold
+            if success_rate >= self.success_threshold:
+                self.threshold_met = True
                 if self.verbose >= 1:
-                    print(f"No improvement for {self.no_improvement_evals}/{self.max_no_improvement_evals} evaluations post-threshold.")
+                    print(f"Success threshold ({self.success_threshold:.2f}) met with rate {success_rate:.2f}!")
+                self.save_model(self.parent.model)
+               # wandb.summary['best_success_rate'] = success_rate
+                if self.success_rate ==1:
+                    print(f"Success threshold of 1.0 reached. Stopping training.")
+                    continue_training = False
+                    return False  # Stops the training immediately
 
-        # Stop training if patience limit reached
-        if self.no_improvement_evals >= self.max_no_improvement_evals:
-            if self.verbose >= 1:
-                print(f"Stopping training: no success improvement for {self.max_no_improvement_evals} consecutive evaluations post-threshold.")
-            return False
+            # 2. Track "new best" models and handle saving when success rate is >= 0.90
+            if success_rate > self.best_success_rate:
+                self.best_success_rate = success_rate
+                self.no_improvement_evals = 0
+                
+                
+                # Only save if we have achieved a NEW best success rate that is also >= 90%
+                if success_rate >= 0.90:
+                    if self.verbose >= 1:
+                        print(f"New best success rate: {self.best_success_rate:.2f} (>= 0.90). Saving model...")
+                    self.save_model(self.parent.model)
+                
+               # wandb.summary['best_success_rate'] = self.best_success_rate
+            else:
+                # 3. If no improvement, increment counter (only after we've met our first benchmark)
+                if self.threshold_met:
+                    self.no_improvement_evals += 1
 
-        return True
+            # 4. Handle early stopping due to patience limit
+            if self.no_improvement_evals >= self.max_no_improvement_evals:
+                if self.verbose >= 1:
+                    print(f"Stopping training: no success improvement for {self.max_no_improvement_evals} consecutive evaluations.")
+                continue_training = False
+
+        return continue_training
