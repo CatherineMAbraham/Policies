@@ -6,7 +6,7 @@ from stable_baselines3.common.callbacks import BaseCallback, EvalCallback
 class StopTrainingOnSuccessRate(BaseCallback):
     """
     Stops training if:
-    1. Success rate reaches 1.0 (100%) immediately.
+    1. Success rate reaches 1.0 (100%) IMMEDIATELY.
     2. Success rate reaches `success_threshold` AND fails to improve for 
        `max_no_improvement_evals` consecutive evaluations.
     """
@@ -49,17 +49,16 @@ class StopTrainingOnSuccessRate(BaseCallback):
             
         if self.verbose >= 1:
             print(f"Model and env stats saved to {self.model_path}")
-        
-    def _on_step(self) -> bool:
-        assert self.parent is not None, "StopTrainingOnSuccessRate must be used as a child callback inside EvalCallback"
 
-        # IMPORTANT: Sync with parent evaluation cycle (only execute on evaluation steps)
-        if self.n_calls % self.parent.eval_freq != 0:
-            return True
+    def _on_step(self) -> bool:
+        # Step handler must return True to maintain normal environment stepping
+        return True
+
+    def _on_event(self) -> bool:
+        """Called by EvalCallback immediately after evaluation finishes."""
+        assert self.parent is not None, "StopTrainingOnSuccessRate must be passed as callback_after_eval inside EvalCallback"
 
         self.eval_count += 1
-        if self.eval_count <= self.min_evals:
-            return True
 
         # Extract success rate from evaluation buffer
         if len(self.parent._is_success_buffer) == 0:
@@ -67,19 +66,31 @@ class StopTrainingOnSuccessRate(BaseCallback):
             
         success_rate = float(np.mean(self.parent._is_success_buffer))
 
-        # 1. Immediate Stop if 100% success rate is hit
+        # --- IMMEDIATE HARD STOP AT 100% SUCCESS ---
+        # Bypasses min_evals checks to stop training instantly on a perfect evaluation run
         if success_rate >= 1.0:
             if self.verbose >= 1:
-                print("100% success rate reached! Saving model and stopping training.")
+                print("\n" + "="*50)
+                print("PERFECT SCORE: 100% success rate reached!")
+                print("Saving final model and stopping training IMMEDIATELY.")
+                print("="*50 + "\n")
+            
+            self.best_success_rate = 1.0
             self.save_model(self.parent.model)
-            wandb.summary['best_success_rate'] = 1.0
-            return False
+            if wandb.run is not None:
+                wandb.summary['best_success_rate'] = 1.0
+            
+            return False  # Returning False instantly terminates model.learn()
 
-        # Mark threshold met if we hit target success rate
+        # Respect min_evals for non-perfect evaluation checks
+        if self.eval_count <= self.min_evals:
+            return True
+
+        # Check if target success threshold met
         if success_rate >= self.success_threshold:
             self.threshold_met = True
 
-        # 2. Track best model and save
+        # Track best success rate & save model
         if success_rate > self.best_success_rate:
             self.best_success_rate = success_rate
             self.no_improvement_evals = 0
@@ -87,15 +98,16 @@ class StopTrainingOnSuccessRate(BaseCallback):
             if self.verbose >= 1:
                 print(f"New best success rate: {self.best_success_rate:.2f}. Saving model...")
             self.save_model(self.parent.model)
-            wandb.summary['best_success_rate'] = self.best_success_rate
+            if wandb.run is not None:
+                wandb.summary['best_success_rate'] = self.best_success_rate
         else:
-            # 3. Only count non-improving evaluations AFTER meeting threshold
+            # Increment patience counter post-threshold
             if self.threshold_met:
                 self.no_improvement_evals += 1
                 if self.verbose >= 1:
-                    print(f"No improvement for {self.no_improvement_evals}/{self.max_no_improvement_evals} evaluations.")
+                    print(f"No improvement for {self.no_improvement_evals}/{self.max_no_improvement_evals} evaluations post-threshold.")
 
-        # 4. Stop if patience limit reached
+        # Stop training if patience limit reached
         if self.no_improvement_evals >= self.max_no_improvement_evals:
             if self.verbose >= 1:
                 print(f"Stopping training: no success improvement for {self.max_no_improvement_evals} consecutive evaluations post-threshold.")

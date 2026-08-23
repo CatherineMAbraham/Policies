@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1            # 4 agents total
 #SBATCH --cpus-per-task=5      # 4 CPUs per agent
 #SBATCH --mem=80G              # 8GB RAM per agent
-#SBATCH --time=20:00:00
+#SBATCH --time=30:00:00
 #SBATCH --output=out_%A_%a.out
 
 
@@ -24,7 +24,7 @@ python td3_test.py \
     --youngs_modulus 5e5 \
     --softtissue spring \
     --render_mode 'direct' \
-    --youngs_modulus_type testing \
+    --youngs_modulus_type None \
     --contact_type 1 \
     --seed 1 \
     --ran 1
