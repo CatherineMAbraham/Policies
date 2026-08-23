@@ -274,6 +274,7 @@ def train(threshold_pos=0.001,
 
     dones = []
     contacts = []
+    explosions = []
     num = 1000
     episodes_collected = 0
     obs = soft_eval_env.reset()
@@ -336,7 +337,8 @@ def train(threshold_pos=0.001,
                 info = info_list[i]
                 is_success = info.get("is_success", False)
                 has_contact = info.get("contact", False)
-                
+                has_exploded = info.get("exploded", False)
+
                 # Contact Forces
                 ep_c_forces = env_step_contact_forces[i]
                 ep_max_contact_force = max(ep_c_forces) if ep_c_forces else 0.0
@@ -349,7 +351,7 @@ def train(threshold_pos=0.001,
                 
                 dones.append(is_success)
                 contacts.append(has_contact)
-                
+                explosions.append(has_exploded)
                 # Categorize Max Contact & Agent Forces by Episode Outcome
                 if is_success and has_contact:
                     succ_with_contact_forces.append(ep_max_contact_force)
@@ -372,6 +374,8 @@ def train(threshold_pos=0.001,
                 env_step_contact_forces[i] = []
                 env_step_agent_forces[i] = []
 
+                valid_dones = [d for d, e in zip(dones, explosions) if not e]
+                not_exploded_success_rate = (sum(valid_dones) / len(valid_dones)) if len(valid_dones) > 0 else 0.0
                 # 3. WANDB LOGGING & SUMMARY UPDATES
                 if log == 1:
                     wandb.log({
@@ -382,7 +386,8 @@ def train(threshold_pos=0.001,
                         "Episode Avg Contact Force": ep_avg_contact_force,
                         "Episode Max Agent Force": ep_max_agent_force,
                         "Episode Avg Agent Force": ep_avg_agent_force,
-                        "Success Rate": sum(dones) / len(dones)
+                        "Success Rate": sum(dones) / len(dones),
+                        "Not Exploded Success Rate": not_exploded_success_rate
                     })
 
                     # Counts
