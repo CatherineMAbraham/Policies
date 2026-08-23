@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1            # 4 agents total
 #SBATCH --cpus-per-task=5      # 4 CPUs per agent
 #SBATCH --mem=20G    
-#SBATCH --array=1-10          # 8GB RAM per agent
+#SBATCH --array=1-9        # 8GB RAM per agent
 #SBATCH --time=15:00:00
 #SBATCH --output=out_%A_%a.out
 
@@ -30,5 +30,5 @@ srun --export=ALL $PYTHON_EXEC td3_v1.py \
  --model $MODEL \
  --seed $SEED \
  --log 1 \
- --ran $SEED\
+ --ran 1\
  --render_mode 'direct'
