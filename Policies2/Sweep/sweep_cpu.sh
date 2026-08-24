@@ -1,8 +1,6 @@
 #!/bin/bash
 #SBATCH --mail-user=cmabraham1@sheffield.ac.uk
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --partition=cpu
-#SBATCH --qos=cpu
 #SBATCH --ntasks=20        # 4 agents total
 #SBATCH --cpus-per-task=1     # 4 CPUs per agent
 #SBATCH --mem=20G              # 8GB RAM per agent
