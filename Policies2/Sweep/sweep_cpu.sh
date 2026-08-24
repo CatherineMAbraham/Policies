@@ -1,20 +1,20 @@
 #!/bin/bash
 #SBATCH --mail-user=cmabraham1@sheffield.ac.uk
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --ntasks=20        # 4 agents total
-#SBATCH --cpus-per-task=1     # 4 CPUs per agent
-#SBATCH --mem=20G              # 8GB RAM per agent
+#SBATCH --ntasks=20
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=20G
 #SBATCH --time=48:00:00
 #SBATCH --output=out_%A_%a.out
 
+# Activate Conda Environment properly
+source ~/.bashrc
+conda activate softsurg9
 
-PYTHON_EXEC="/users/cop21cma/.conda/envs/softsurg9/bin/python"
+# (Optional) Export W&B API key if needed
+# export WANDB_API_KEY="your_api_key_here"
 
+# Execute agent script with the generated Sweep ID
+SWEEP_ID="v8avoer6"
 
-
-
-
-
-wandb init --entity cmabraham1-university-of-sheffield --project Chapter3-Sweep
-# Run the script 
-srun --export=ALL $PYTHON_EXEC td3_sweep_v2.py 
+python td3_sweep_v2.py --sweep_id $SWEEP_ID --count 5
