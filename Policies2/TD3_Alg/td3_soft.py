@@ -162,16 +162,16 @@ def train(threshold_pos=0.001,
    
     td3_kwargs = {"tau": 0.1,
                    "gamma": 0.9,
-                   "batch_size":  128,
-                   "train_freq":  2,
+                   "batch_size":  256,
+                   "train_freq":  1,
                    "buffer_size": 500_000,
                    "learning_rate": linear_schedule(0.001),
-                   "learning_starts":2000,
+                   "learning_starts":5000,
                    "gradient_steps": -1,
                    "policy": "MultiInputPolicy",
                    "replay_buffer_class": HerReplayBuffer,
-                   "replay_buffer_kwargs": dict(n_sampled_goal=8,goal_selection_strategy='future'),
-                   "policy_kwargs": dict(net_arch=[400, 300]),
+                   "replay_buffer_kwargs": dict(n_sampled_goal=4,goal_selection_strategy='future'),
+                   "policy_kwargs": dict(net_arch=[256, 256,256]),
                    "tensorboard_log": f'./logs/{ran}',
                    "seed": seed}
       
@@ -207,13 +207,13 @@ def train(threshold_pos=0.001,
                     'randomise_num_springs': randomise_num_springs,
                     'render_mode': 'direct'}
     
-    eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=10, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
+    eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
     
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     log_callback1 = log_callback.CustomCallback()
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
-                                                    max_no_improvement_evals=5, 
-                                                    success_threshold=0.9,  
+                                                    max_no_improvement_evals=10, 
+                                                    success_threshold=0.85,  
                                                     min_evals=1, verbose=1, 
                                                     model_name = model_name,
                                                     model_save_path=f'./best_models/{ran}')
@@ -224,7 +224,7 @@ def train(threshold_pos=0.001,
         callback = [eval_callback, log_callback1]
     else:
         callback = [eval_callback]
-    model.learn(1_500_000, callback=callback)
+    model.learn(1_000_000, callback=callback)
     # #save model name in log file
     # with open('./logs/model_log.txt', 'w') as f:
     #     f.write(f'{model_name}\n')
