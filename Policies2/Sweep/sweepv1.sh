@@ -20,4 +20,5 @@ PYTHON_EXEC="/users/cop21cma/.conda/envs/softsurg9/bin/python"
 
 wandb init --entity cmabraham1-university-of-sheffield --project Chapter3-Sweep
 # Run the script 
-srun --export=ALL $PYTHON_EXEC td3_sweep_v2.py 
+SWEEP_ID="v8avoer6"
+srun --export=ALL $PYTHON_EXEC td3_sweep_v2.py --sweep_id $SWEEP_ID --count 5
