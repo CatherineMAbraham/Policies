@@ -16,8 +16,8 @@ TASK_ID=${SLURM_ARRAY_TASK_ID:-1}
 PARAM_LINE=$(sed -n "${TASK_ID}p" tests_params.csv)
 IFS=',' read -r CONTACT_THRESHOLD SEED <<< "$PARAM_LINE"
 srun --export=ALL $PYTHON_EXEC td3_soft.py \
-                --threshold_pos 0.0005 \
-                --threshold_ori 0.5 \
+                --threshold_pos 0.0002 \
+                --threshold_ori 0.2 \
                 --action_type euler \
                 --maxforce 5 \
                 --num_springs 3 \
