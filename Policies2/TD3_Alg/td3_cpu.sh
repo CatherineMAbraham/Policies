@@ -29,4 +29,5 @@ srun --export=ALL $PYTHON_EXEC td3_test.py \
                 --render_mode 'direct' \
                 --youngs_modulus_type None \
                 --contact_type $CONTACT  \
+                --model $MODEL \
                 --ran $TASK_ID
