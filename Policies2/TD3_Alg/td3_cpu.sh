@@ -17,7 +17,7 @@ PARAM_LINE=$(sed -n "${TASK_ID}p" model_log.csv)
 IFS=',' read -r MODEL  RAN CONTACT <<< "$PARAM_LINE"
 #echo "Running test with: Contact=$CONTACT, Contact Force=$CONTACTFORCE, Seed=$SEED"
 #Run the script 
-srun --export=ALL $PYTHON_EXEC td3_soft.py \
+srun --export=ALL $PYTHON_EXEC td3_test.py \
                 --threshold_pos 0.0005 \
                 --threshold_ori 0.5 \
                 --action_type euler \
