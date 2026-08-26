@@ -88,6 +88,7 @@ def train(threshold_pos=0.001,
           randomise_ligs=False,
           randomise_start=False,
           log=True,
+          maximum_contact_force_threshold=0.25,
           model = 'model-spring_randomYM_08210959_1',
           seed=0):
     render_mode = render_mode
@@ -243,6 +244,7 @@ def train(threshold_pos=0.001,
                 'patient': 110,
                 'action_type': 'euler',
                 'maxforce': 5,
+                'maximum_contact_force_threshold': maximum_contact_force_threshold,
                 'contact_type' : 1,
                 'start_pos' : 'home',
                 'render_mode': 'direct',
@@ -490,36 +492,37 @@ def train(threshold_pos=0.001,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train TD3 model with specified thresholds and action type.')
-    parser.add_argument('--threshold_pos', type=float, default=0.0005, help='Position threshold for the environment.')
-    parser.add_argument('--threshold_ori', type=float, default=0.5, help='Orientation threshold for the environment.')
+    parser.add_argument('--threshold_pos', type=float, default=0.005, help='Position threshold for the environment.')
+    parser.add_argument('--threshold_ori', type=float, default=0.05, help='Orientation threshold for the environment.')
+    parser.add_argument('--maximum_contact_force_threshold', type=float, default=0.5, help='Maximum contact force threshold for the environment.')
     parser.add_argument('--action_type', type=str, default='euler', help='Type of action to use in the environment.')
     parser.add_argument('--render_mode', type=str, default="human", help='Render mode for the environment.')
     parser.add_argument('--maxforce', type=float, default=4, help='Force threshold for the environment.')
     parser.add_argument('--softtissue', type=str, default="spring", help='Soft Tissue Type.')
     parser.add_argument('--num_springs', type=int, default=3, help='Number of springs for the soft tissue.')
-    parser.add_argument('--contact_type', type=int, default=1, help='Type of contact for the environment.')
+    parser.add_argument('--contact_type', type=int, default=0, help='Type of contact for the environment.')
     parser.add_argument('--youngs_modulus', type=float, default=1e7, help='Young\'s modulus for the soft tissue. Use an integer or None')
-    parser.add_argument('--youngs_modulus_type', type=str, default='testing', help='Type of Young\'s modulus for the soft tissue.')
+    parser.add_argument('--youngs_modulus_type', type=str, default='eval_mode', help='Type of Young\'s modulus for the soft tissue.')
     parser.add_argument('--randomise_ligs', type=int, default=0, help='Whether to randomise ligaments for the environment.')
     parser.add_argument('--randomise_start', type=int, default=0, help='Whether to randomise the starting position for the environment.')
-    parser.add_argument('--model', type=str, default='model-spring_randomYM_08210959_1', help='Name of the model to load for evaluation.')
+    parser.add_argument('--randomise_num_springs', type=int, default=0, help='Whether to randomise the number of springs for the environment.')
     parser.add_argument('--ran', type=str, default="1", help='Random seed for the run.')
     parser.add_argument('--log', type=int, default=0, help='Whether to log the training run to W&B.')
     parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducibility.')
     args = parser.parse_args()
     train(threshold_pos=args.threshold_pos, 
-          threshold_ori=args.threshold_ori, 
-          action_type=args.action_type, 
-          render_mode=args.render_mode,
-          maxforce=args.maxforce, 
-          num_springs=args.num_springs,
-          contact_type=args.contact_type,
-          softtissue=args.softtissue, 
-          model =args.model,
-          ran=args.ran,
-          log=args.log,
-          youngs_modulus=args.youngs_modulus,
-          youngs_modulus_type=args.youngs_modulus_type,
-          randomise_ligs=args.randomise_ligs,
-          randomise_start=args.randomise_start,
-          seed=args.seed)
+            threshold_ori=args.threshold_ori, 
+            action_type=args.action_type, 
+            render_mode=args.render_mode,
+            maxforce=args.maxforce, 
+            num_springs=args.num_springs,
+            contact_type=args.contact_type,
+            softtissue=args.softtissue, 
+            max_contact_force_threshold=args.maximum_contact_force_threshold,
+            ran=args.ran,
+            log=args.log,
+            youngs_modulus=args.youngs_modulus,
+            youngs_modulus_type=args.youngs_modulus_type,
+            randomise_ligs=args.randomise_ligs,
+            randomise_start=args.randomise_start,
+            seed=args.seed)
