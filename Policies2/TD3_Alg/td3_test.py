@@ -518,7 +518,7 @@ if __name__ == "__main__":
             num_springs=args.num_springs,
             contact_type=args.contact_type,
             softtissue=args.softtissue, 
-            max_contact_force_threshold=args.maximum_contact_force_threshold,
+            maximum_contact_force_threshold=args.maximum_contact_force_threshold,
             ran=args.ran,
             log=args.log,
             youngs_modulus=args.youngs_modulus,
