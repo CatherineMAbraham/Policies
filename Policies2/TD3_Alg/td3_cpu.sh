@@ -28,6 +28,5 @@ srun --export=ALL $PYTHON_EXEC td3_test.py \
                 --softtissue soft \
                 --render_mode 'direct' \
                 --youngs_modulus_type None \
-                --contact_type $CONTACT \
-                --seed $SEED \
+                --contact_type $CONTACT \\
                 --ran $TASK_ID
