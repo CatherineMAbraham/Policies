@@ -133,7 +133,7 @@ def train(threshold_pos=0.001,
     model_name = f'model-{name}'
     log =1
     if log==1:
-        wandb.init(project="Chapter3-Results",tags ='soft', name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
+        wandb.init(project="Chapter3-Results",tags ={'soft'}, name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     #print((f'{softtissue}-{train_date}-{num_springs}-{youngs_modulus}-{ran}'))
     # env_kwargs = {
     #     'reward_type': 'sparse',
@@ -506,6 +506,7 @@ if __name__ == "__main__":
     parser.add_argument('--randomise_ligs', type=int, default=0, help='Whether to randomise ligaments for the environment.')
     parser.add_argument('--randomise_start', type=int, default=0, help='Whether to randomise the starting position for the environment.')
     parser.add_argument('--randomise_num_springs', type=int, default=0, help='Whether to randomise the number of springs for the environment.')
+    parser.add_argument('--model', type=str, default='model-spring_randomYM_08210959_1', help='Model name to load for evaluation.')
     parser.add_argument('--ran', type=str, default="1", help='Random seed for the run.')
     parser.add_argument('--log', type=int, default=0, help='Whether to log the training run to W&B.')
     parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducibility.')
@@ -519,6 +520,7 @@ if __name__ == "__main__":
             contact_type=args.contact_type,
             softtissue=args.softtissue, 
             maximum_contact_force_threshold=args.maximum_contact_force_threshold,
+            model=args.model,
             ran=args.ran,
             log=args.log,
             youngs_modulus=args.youngs_modulus,
