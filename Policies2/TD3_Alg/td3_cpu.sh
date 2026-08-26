@@ -14,7 +14,7 @@ PYTHON_EXEC="/users/cop21cma/.conda/envs/softsurg9/bin/python"
 # Read the correct line from params_curr_compare.csv
 TASK_ID=${SLURM_ARRAY_TASK_ID:-1}
 PARAM_LINE=$(sed -n "${TASK_ID}p" model_log.csv)
-IFS=',' read -r MODEL  RAN CONTACT <<< "$PARAM_LINE"
+IFS=',' read -r MODEL RAN CONTACT <<< "$PARAM_LINE"
 #echo "Running test with: Contact=$CONTACT, Contact Force=$CONTACTFORCE, Seed=$SEED"
 #Run the script 
 srun --export=ALL $PYTHON_EXEC td3_test.py \
@@ -30,4 +30,4 @@ srun --export=ALL $PYTHON_EXEC td3_test.py \
                 --youngs_modulus_type None \
                 --contact_type $CONTACT  \
                 --model $MODEL \
-                --ran $TASK_ID
+                --ran $RAN \
