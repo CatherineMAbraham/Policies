@@ -245,7 +245,7 @@ def train(threshold_pos=0.001,
                 'action_type': 'euler',
                 'maxforce': 5,
                 'maximum_contact_force_threshold': maximum_contact_force_threshold,
-                'contact_type' : 1,
+                'contact_type' : contact_type,
                 'start_pos' : 'home',
                 'render_mode': 'direct',
                 'test': True,}
