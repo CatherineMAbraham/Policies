@@ -131,9 +131,13 @@ def train(threshold_pos=0.001,
     #print(youngs_modulus)  |
     #print(contact_type)
     #name = f'{softtissue}_{randomise_start}_{randomise_ligs}-{seed}'
+    tags = [
+    f"{contact_type}",
+    f"{max_contact_force_threshold}",
+]
     model_name = f'model-{name}'
     if log==1:
-        wandb.init(project="Chapter3-Results", name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
+        wandb.init(project="Chapter3-Results2",tags=tags, name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     #print((f'{softtissue}-{train_date}-{num_springs}-{youngs_modulus}-{ran}'))
     env_kwargs = {
         'reward_type': 'sparse',
@@ -278,29 +282,46 @@ def train(threshold_pos=0.001,
     num = 1000
     episodes_collected = 0
     obs = soft_eval_env.reset()
-    forces = []
-    max_forces = []
-    success_contact_forces = []
-    fail_contact_forces = []
-    eps = 0
 
-    all_step_contact_forces = []    # Logs all step contact forces (including 0.0)
-    all_step_agent_forces = []      # Logs all step applied agent forces
-    all_active_contact_forces = []  # Logs step contact force only when contact is active (>0.5N)
+    # Step-level logs
+    all_step_contact_forces = []    
+    all_step_agent_forces = []      
+    all_active_contact_forces = []  
 
-    # Episode Contact Force summaries split by outcome
-    succ_with_contact_forces = []    
-    succ_without_contact_forces = [] 
-    fail_with_contact_forces = []    
-    fail_without_contact_forces = [] 
+    # --- 1. OVERALL BUFFERS (EXPLODED + NON-EXPLODED) ---
+    overall_succ_with_contact_forces = []    
+    overall_succ_without_contact_forces = [] 
+    overall_fail_with_contact_forces = []    
+    overall_fail_without_contact_forces = [] 
 
-    # Episode Agent Force summaries split by outcome
-    succ_with_contact_agent_forces = []
-    succ_without_contact_agent_forces = []
-    fail_with_contact_agent_forces = []
-    fail_without_contact_agent_forces = []
+    overall_succ_with_contact_agent_forces = []
+    overall_succ_without_contact_agent_forces = []
+    overall_fail_with_contact_agent_forces = []
+    overall_fail_without_contact_agent_forces = []
 
-    # --- PER-ENV BUFFERS ---
+    # --- 2. CLEAN BUFFERS (NON-EXPLODED ONLY) ---
+    clean_succ_with_contact_forces = []    
+    clean_succ_without_contact_forces = [] 
+    clean_fail_with_contact_forces = []    
+    clean_fail_without_contact_forces = [] 
+
+    clean_succ_with_contact_agent_forces = []
+    clean_succ_without_contact_agent_forces = []
+    clean_fail_with_contact_agent_forces = []
+    clean_fail_without_contact_agent_forces = []
+
+    # --- 3. EXPLODED BUFFERS ---
+    exp_succ_with_contact_forces = []
+    exp_succ_without_contact_forces = []
+    exp_fail_with_contact_forces = []
+    exp_fail_without_contact_forces = []
+
+    exp_succ_with_contact_agent_forces = []
+    exp_succ_without_contact_agent_forces = []
+    exp_fail_with_contact_agent_forces = []
+    exp_fail_without_contact_agent_forces = []
+
+    # --- PER-ENV STEP BUFFERS ---
     env_step_contact_forces = [[] for _ in range(soft_eval_env.num_envs)]
     env_step_agent_forces = [[] for _ in range(soft_eval_env.num_envs)]
 
@@ -321,9 +342,7 @@ def train(threshold_pos=0.001,
             all_step_contact_forces.append(step_contact_force)
             all_step_agent_forces.append(step_agent_force)
             
-            # Threshold aligned with your environment's 0.5N filter
-            if step_contact_force > 0.5:
-                all_active_contact_forces.append(step_contact_force)
+            
             
             if log == 1:
                 wandb.log({
@@ -348,82 +367,116 @@ def train(threshold_pos=0.001,
                 ep_a_forces = env_step_agent_forces[i]
                 ep_max_agent_force = max(ep_a_forces) if ep_a_forces else 0.0
                 ep_avg_agent_force = sum(ep_a_forces) / len(ep_a_forces) if ep_a_forces else 0.0
-                
+
+                                
                 dones.append(is_success)
                 contacts.append(has_contact)
                 explosions.append(has_exploded)
-                # Categorize Max Contact & Agent Forces by Episode Outcome
+
+                # --- POPULATE OVERALL BUFFERS (ALL EPISODES) ---
                 if is_success and has_contact:
-                    succ_with_contact_forces.append(ep_max_contact_force)
-                    succ_with_contact_agent_forces.append(ep_max_agent_force)
+                    overall_succ_with_contact_forces.append(ep_max_contact_force)
+                    overall_succ_with_contact_agent_forces.append(ep_max_agent_force)
                 elif is_success and not has_contact:
-                    succ_without_contact_forces.append(ep_max_contact_force)
-                    succ_without_contact_agent_forces.append(ep_max_agent_force)
+                    overall_succ_without_contact_forces.append(ep_max_contact_force)
+                    overall_succ_without_contact_agent_forces.append(ep_max_agent_force)
                 elif not is_success and has_contact:
-                    fail_with_contact_forces.append(ep_max_contact_force)
-                    fail_with_contact_agent_forces.append(ep_max_agent_force)
+                    overall_fail_with_contact_forces.append(ep_max_contact_force)
+                    overall_fail_with_contact_agent_forces.append(ep_max_agent_force)
                 else:
-                    fail_without_contact_forces.append(ep_max_contact_force)
-                    fail_without_contact_agent_forces.append(ep_max_agent_force)
+                    overall_fail_without_contact_forces.append(ep_max_contact_force)
+                    overall_fail_without_contact_agent_forces.append(ep_max_agent_force)
+
+                # --- POPULATE CLEAN VS EXPLODED BUFFERS ---
+                if has_exploded:
+                    if is_success and has_contact:
+                        exp_succ_with_contact_forces.append(ep_max_contact_force)
+                        exp_succ_with_contact_agent_forces.append(ep_max_agent_force)
+                    elif is_success and not has_contact:
+                        exp_succ_without_contact_forces.append(ep_max_contact_force)
+                        exp_succ_without_contact_agent_forces.append(ep_max_agent_force)
+                    elif not is_success and has_contact:
+                        exp_fail_with_contact_forces.append(ep_max_contact_force)
+                        exp_fail_with_contact_agent_forces.append(ep_max_agent_force)
+                    else:
+                        exp_fail_without_contact_forces.append(ep_max_contact_force)
+                        exp_fail_without_contact_agent_forces.append(ep_max_agent_force)
+                else:
+                    if is_success and has_contact:
+                        clean_succ_with_contact_forces.append(ep_max_contact_force)
+                        clean_succ_with_contact_agent_forces.append(ep_max_agent_force)
+                    elif is_success and not has_contact:
+                        clean_succ_without_contact_forces.append(ep_max_contact_force)
+                        clean_succ_without_contact_agent_forces.append(ep_max_agent_force)
+                    elif not is_success and has_contact:
+                        clean_fail_with_contact_forces.append(ep_max_contact_force)
+                        clean_fail_with_contact_agent_forces.append(ep_max_agent_force)
+                    else:
+                        clean_fail_without_contact_forces.append(ep_max_contact_force)
+                        clean_fail_without_contact_agent_forces.append(ep_max_agent_force)
 
                 episodes_collected += 1
-                print(f"[{episodes_collected}/{num}] Env {i} | Success: {is_success} | Contact: {has_contact} | "
-                    f"Max Contact Force: {ep_max_contact_force:.2f}N | Max Agent Force: {ep_max_agent_force:.2f}N")
+                print(f"[{episodes_collected}/{num}] Env {i} | Success: {is_success} | Contact: {has_contact} | Exploded: {has_exploded} | "
+                        f"Max Contact Force: {ep_max_contact_force:.2f}N | Max Agent Force: {ep_max_agent_force:.2f}N")
 
-                # Reset local step buffers for this environment
+                # Reset local step buffers
                 env_step_contact_forces[i] = []
                 env_step_agent_forces[i] = []
 
                 valid_dones = [d for d, e in zip(dones, explosions) if not e]
                 not_exploded_success_rate = (sum(valid_dones) / len(valid_dones)) if len(valid_dones) > 0 else 0.0
+
                 # 3. WANDB LOGGING & SUMMARY UPDATES
                 if log == 1:
                     wandb.log({
                         "Episode": episodes_collected,
                         "Success": is_success,
                         "Contact": has_contact,
+                        "Exploded": has_exploded,
                         "Episode Max Contact Force": ep_max_contact_force,
                         "Episode Avg Contact Force": ep_avg_contact_force,
                         "Episode Max Agent Force": ep_max_agent_force,
                         "Episode Avg Agent Force": ep_avg_agent_force,
-                        "Success Rate": sum(dones) / len(dones),
-                        "Not Exploded Success Rate": not_exploded_success_rate
+                        "Overall Success Rate": sum(dones) / len(dones),
+                        "Clean Success Rate": not_exploded_success_rate
                     })
 
-                    # Counts
-                    wandb.run.summary['Count / Success With Contact'] = len(succ_with_contact_forces)
-                    wandb.run.summary['Count / Success Without Contact'] = len(succ_without_contact_forces)
-                    wandb.run.summary['Count / Fail With Contact'] = len(fail_with_contact_forces)
-                    wandb.run.summary['Count / Fail Without Contact'] = len(fail_without_contact_forces)
-                    
-                    # Global Mean Step Forces across all runs
-                    wandb.run.summary['Force / Overall Mean Contact Force'] = sum(all_step_contact_forces) / len(all_step_contact_forces) if all_step_contact_forces else 0.0
-                    wandb.run.summary['Force / Overall Mean Agent Force'] = sum(all_step_agent_forces) / len(all_step_agent_forces) if all_step_agent_forces else 0.0
-                    wandb.run.summary['Force / Overall Mean Contact Force (Active)'] = sum(all_active_contact_forces) / len(all_active_contact_forces) if all_active_contact_forces else 0.0
-                    
-                    # Contact Force Summaries (Avg Max)
-                    if succ_with_contact_forces:
-                        wandb.run.summary['Contact Force / Success With Contact (Avg Max)'] = sum(succ_with_contact_forces) / len(succ_with_contact_forces)
-                    if succ_without_contact_forces:
-                        wandb.run.summary['Contact Force / Success Without Contact (Avg Max)'] = sum(succ_without_contact_forces) / len(succ_without_contact_forces)
-                    if fail_with_contact_forces:
-                        wandb.run.summary['Contact Force / Fail With Contact (Avg Max)'] = sum(fail_with_contact_forces) / len(fail_with_contact_forces)
-                    if fail_without_contact_forces:
-                        wandb.run.summary['Contact Force / Fail Without Contact (Avg Max)'] = sum(fail_without_contact_forces) / len(fail_without_contact_forces)
+                    # --- OVERALL COUNTS ---
+                    wandb.run.summary['Count Overall/Success With Contact'] = len(overall_succ_with_contact_forces)
+                    wandb.run.summary['Count Overall/Success Without Contact'] = len(overall_succ_without_contact_forces)
+                    wandb.run.summary['Count Overall/Fail With Contact'] = len(overall_fail_with_contact_forces)
+                    wandb.run.summary['Count Overall/Fail Without Contact'] = len(overall_fail_without_contact_forces)
 
-                    # Agent Force Summaries (Avg Max)
-                    if succ_with_contact_agent_forces:
-                        wandb.run.summary['Agent Force / Success With Contact (Avg Max)'] = sum(succ_with_contact_agent_forces) / len(succ_with_contact_agent_forces)
-                    if succ_without_contact_agent_forces:
-                        wandb.run.summary['Agent Force / Success Without Contact (Avg Max)'] = sum(succ_without_contact_agent_forces) / len(succ_without_contact_agent_forces)
-                    if fail_with_contact_agent_forces:
-                        wandb.run.summary['Agent Force / Fail With Contact (Avg Max)'] = sum(fail_with_contact_agent_forces) / len(fail_with_contact_agent_forces)
-                    if fail_without_contact_agent_forces:
-                        wandb.run.summary['Agent Force / Fail Without Contact (Avg Max)'] = sum(fail_without_contact_agent_forces) / len(fail_without_contact_agent_forces)
+                    # --- CLEAN COUNTS ---
+                    wandb.run.summary['Count Clean/Success With Contact'] = len(clean_succ_with_contact_forces)
+                    wandb.run.summary['Count Clean/Success Without Contact'] = len(clean_succ_without_contact_forces)
+                    wandb.run.summary['Count Clean/Fail With Contact'] = len(clean_fail_with_contact_forces)
+                    wandb.run.summary['Count Clean/Fail Without Contact'] = len(clean_fail_without_contact_forces)
+
+                    # --- OVERALL CONTACT FORCES ---
+                    if overall_succ_with_contact_forces:
+                        wandb.run.summary['Contact Force Overall/Success With Contact (Avg Max)'] = sum(overall_succ_with_contact_forces) / len(overall_succ_with_contact_forces)
+                    if overall_succ_without_contact_forces:
+                        wandb.run.summary['Contact Force Overall/Success Without Contact (Avg Max)'] = sum(overall_succ_without_contact_forces) / len(overall_succ_without_contact_forces)
+                    if overall_fail_with_contact_forces:
+                        wandb.run.summary['Contact Force Overall/Fail With Contact (Avg Max)'] = sum(overall_fail_with_contact_forces) / len(overall_fail_with_contact_forces)
+                    if overall_fail_without_contact_forces:
+                        wandb.run.summary['Contact Force Overall/Fail Without Contact (Avg Max)'] = sum(overall_fail_without_contact_forces) / len(overall_fail_without_contact_forces)
+
+                    # --- CLEAN CONTACT FORCES ---
+                    if clean_succ_with_contact_forces:
+                        wandb.run.summary['Contact Force Clean/Success With Contact (Avg Max)'] = sum(clean_succ_with_contact_forces) / len(clean_succ_with_contact_forces)
+                    if clean_succ_without_contact_forces:
+                        wandb.run.summary['Contact Force Clean/Success Without Contact (Avg Max)'] = sum(clean_succ_without_contact_forces) / len(clean_succ_without_contact_forces)
+                    if clean_fail_with_contact_forces:
+                        wandb.run.summary['Contact Force Clean/Fail With Contact (Avg Max)'] = sum(clean_fail_with_contact_forces) / len(clean_fail_with_contact_forces)
+                    if clean_fail_without_contact_forces:
+                        wandb.run.summary['Contact Force Clean/Fail Without Contact (Avg Max)'] = sum(clean_fail_without_contact_forces) / len(clean_fail_without_contact_forces)
 
                 if episodes_collected >= num:
                     break
 
+      
     # --- CLEANUP (Outside the while loop) ---
     print("\nEvaluation complete. Cleaning up resources to save memory...")
     soft_eval_env.close()
