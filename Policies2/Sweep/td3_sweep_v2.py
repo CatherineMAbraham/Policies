@@ -42,7 +42,8 @@ def train():
     maxforce = 5
     softtissue = "spring"
     num_springs = 3
-    contact_type = 0
+    contact_type = 1
+    maximum_contact_force_threshold = 0.25
     youngs_modulus = 5e5
     eval_seed = 42
     seed = 1
@@ -72,6 +73,7 @@ def train():
         "start_pos": "home",
         "patient": 110,
         "maxforce": maxforce,
+        'maximum_contact_force_threshold': maximum_contact_force_threshold,
         "contact_type": contact_type,
         "number_of_springs": num_springs,
         "softtissue": softtissue,
@@ -119,7 +121,7 @@ def train():
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, max_no_improvement_evals=1, success_threshold=1)
     eval_callback = EvalCallback(eval_env, eval_freq=10000, deterministic=True, n_eval_episodes=20, callback_after_eval=success_callback)
 
-    model.learn(500_000, callback=eval_callback)
+    model.learn(250_000, callback=eval_callback)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

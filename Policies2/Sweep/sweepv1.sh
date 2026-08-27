@@ -1,12 +1,10 @@
 #!/bin/bash
 #SBATCH --mail-user=cmabraham1@sheffield.ac.uk
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --partition=gpu
-#SBATCH --gres=gpu:a100:1
-#SBATCH --qos=gpu
-#SBATCH --ntasks=20        # 4 agents total
+#SBATCH --ntasks=1        # 4 agents total
 #SBATCH --cpus-per-task=1     # 4 CPUs per agent
 #SBATCH --mem=20G              # 8GB RAM per agent
+#SBATCH --array=1-20
 #SBATCH --time=48:00:00
 #SBATCH --output=out_%A_%a.out
 
@@ -20,5 +18,5 @@ PYTHON_EXEC="/users/cop21cma/.conda/envs/softsurg9/bin/python"
 
 wandb init --entity cmabraham1-university-of-sheffield --project Chapter3-Sweep
 # Run the script 
-SWEEP_ID="v8avoer6"
+SWEEP_ID="i6e65h24"
 srun --export=ALL $PYTHON_EXEC td3_sweep_v2.py --sweep_id $SWEEP_ID --count 5
