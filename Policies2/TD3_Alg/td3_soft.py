@@ -134,6 +134,7 @@ def train(threshold_pos=0.001,
     tags = [
     f"{contact_type}",
     f"{max_contact_force_threshold}",
+    "new"
 ]
     model_name = f'model-{name}'
     if log==1:
@@ -212,7 +213,7 @@ def train(threshold_pos=0.001,
                     'randomise_num_springs': randomise_num_springs,
                     'render_mode': 'direct'}
     
-    eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=10, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
+    eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
     
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
     eval_env.obs_rms = env.obs_rms
