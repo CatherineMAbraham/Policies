@@ -14,8 +14,7 @@ source activate softsurg9
 # Read the correct line from params_curr_compare.csv
 
 # Run the script
-#srun --export=ALL 
-python td3_soft.py \
+srun --export=ALL python td3_soft.py \
     --threshold_pos 0.0005 \
     --threshold_ori 0.5 \
     --action_type euler \
