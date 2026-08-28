@@ -20,7 +20,7 @@ python td3_soft.py \
     --threshold_ori 0.5 \
     --action_type euler \
     --maxforce 5 \
-    --maximum_contact_force_threshold 0.25 \
+    --maximum_contact_force_threshold 0.2 \
     --num_springs 3 \
     --youngs_modulus 5e5 \
     --softtissue spring \
