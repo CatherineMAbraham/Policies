@@ -215,8 +215,8 @@ def train(threshold_pos=0.001,
     eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=10, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
     
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
-    eval_env.obs_rms = env.obs_rms
-    eval_env.training = False
+    #eval_env.obs_rms = env.obs_rms
+    #eval_env.training = False
     log_callback1 = log_callback.CustomCallback()
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
                                                     max_no_improvement_evals=15, 
