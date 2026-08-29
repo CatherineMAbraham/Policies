@@ -25,7 +25,7 @@ python td3_v1.py \
   --softtissue $TISSUE \
   --num_springs 1 \
   --youngs_modulus $YOUNGS_MODULUS \
-  --contact_type 0 \
+  --contact_type 1 \
   --seed $SEED \
   --log 0 \
-  --render_mode 'direct'
+  --render_mode 'human'
