@@ -165,25 +165,25 @@ def train(threshold_pos=0.001,
         'render_mode': render_mode}
         #"0.025 -0.04 0" rpy="0 1.57 0"
    
-    td3_kwargs = {"tau": 0.02,
-                   "gamma": 0.93,
-                   "batch_size":  128,
+    td3_kwargs = {"tau": 0.1,
+                   "gamma": 0.9,
+                   "batch_size":  256,
                    "train_freq":  1,
-                   "buffer_size": 100_000,
-                   "learning_rate": linear_schedule(0.0007),
-                   "learning_starts":2000,
+                   "buffer_size": 500_000,
+                   "learning_rate": linear_schedule(0.001),
+                   "learning_starts":5000,
                    "gradient_steps": -1,
                    "policy": "MultiInputPolicy",
                    "replay_buffer_class": HerReplayBuffer,
                    "replay_buffer_kwargs": dict(n_sampled_goal=4,goal_selection_strategy='future'),
-                   "policy_kwargs": dict(net_arch=[400,300]),
+                   "policy_kwargs": dict(net_arch=[256, 256,256]),
                    "tensorboard_log": f'./logs/{ran}',
                    "seed": seed}
       
     env = make_vec_env('gym_fracture:anklesurg-v2', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
     env = VecNormalize(env, norm_obs=True, norm_reward=False)
-    action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.02 * np.ones(env.action_space.shape[0]))
-    #NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.1 * np.ones(env.action_space.shape[0]))
+    #action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.02 * np.ones(env.action_space.shape[0]))
+    NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.1 * np.ones(env.action_space.shape[0]))
 
 
     model = TD3(**td3_kwargs, env=env, action_noise=action_noise)
