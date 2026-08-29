@@ -109,7 +109,7 @@ def train(threshold_pos=0.001,
     youngs_modulus_name = "None" if youngs_modulus is None else "{:.1E}".format(youngs_modulus)
     #print(youngs_modulus)
     #print(contact_type)
-    name = f'{softtissue}_{num_springs}_{youngs_modulus_name}_{seed}_{train_date}'
+    name = f'contact_{seed}_{train_date}'
     model_name = f'model-{name}'
     if log==1:
         wandb.init(project="Chapter3-Test", name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
