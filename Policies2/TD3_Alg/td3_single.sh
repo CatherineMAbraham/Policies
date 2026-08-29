@@ -10,11 +10,12 @@
 
 module load Anaconda3/2024.02-1
 
-source activate softsurg9
+source activate softsurg
 # Read the correct line from params_curr_compare.csv
 
 # Run the script
-srun --export=ALL python td3_soft.py \
+#srun --export=ALL 
+python td3_soft.py \
     --threshold_pos 0.0005 \
     --threshold_ori 0.5 \
     --action_type euler \
@@ -23,9 +24,9 @@ srun --export=ALL python td3_soft.py \
     --num_springs 3 \
     --youngs_modulus 5e5 \
     --softtissue spring \
-    --render_mode 'direct' \
+    --render_mode 'human' \
     --youngs_modulus_type None \
-    --contact_type 1 \
+    --contact_type 0 \
     --log 1 \
     --seed 1 \
     --ran 1
