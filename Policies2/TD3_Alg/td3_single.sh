@@ -24,7 +24,7 @@ python td3_soft.py \
     --num_springs 3 \
     --youngs_modulus 5e5 \
     --softtissue spring \
-    --render_mode 'human' \
+    --render_mode 'direct' \
     --youngs_modulus_type None \
     --contact_type 0 \
     --log 1 \
