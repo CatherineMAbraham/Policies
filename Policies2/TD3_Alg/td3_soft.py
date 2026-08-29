@@ -134,7 +134,7 @@ def train(threshold_pos=0.001,
     tags = [
     f"{contact_type}",
     f"{max_contact_force_threshold}",
-    "new"
+    "baseline"
 ]
     model_name = f'model-{name}'
     if log==1:
@@ -220,8 +220,8 @@ def train(threshold_pos=0.001,
     eval_env.training = False
     log_callback1 = log_callback.CustomCallback()
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
-                                                    max_no_improvement_evals=15, 
-                                                    success_threshold=0.8,  
+                                                    max_no_improvement_evals=10, 
+                                                    success_threshold=0.90,  
                                                     min_evals=1, verbose=1, 
                                                     model_name = model_name,
                                                     model_save_path=f'./best_models/{ran}')
