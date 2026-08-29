@@ -83,7 +83,7 @@ class StopTrainingOnSuccessRate(BaseCallback):
                         print(f"New best success rate: {self.best_success_rate:.2f} (>= 0.90). Saving model...")
                     self.save_model(self.parent.model)
                 
-               # wandb.summary['best_success_rate'] = self.best_success_rate
+                wandb.summary['best_success_rate'] = self.best_success_rate
             else:
                 # 3. If no improvement, increment counter (only after we've met our first benchmark)
                 if self.threshold_met:
