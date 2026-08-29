@@ -183,7 +183,7 @@ def train(threshold_pos=0.001,
     env = make_vec_env('gym_fracture:anklesurg-v2', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
     env = VecNormalize(env, norm_obs=True, norm_reward=False)
     #action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.02 * np.ones(env.action_space.shape[0]))
-    NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.1 * np.ones(env.action_space.shape[0]))
+    action_noise = NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.1 * np.ones(env.action_space.shape[0]))
 
 
     model = TD3(**td3_kwargs, env=env, action_noise=action_noise)
