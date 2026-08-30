@@ -93,8 +93,8 @@ def train(threshold_pos=0.001,
           run_iterative_search=True,
           decay_factor=0.8,
           target_success_rate=0.85,
-          max_tuning_iters=4,
-          fine_tune_timesteps=50_000):
+          max_tuning_iters=10,
+          fine_tune_timesteps=500_000):
     
     render_mode = render_mode
     commit = None
@@ -173,7 +173,7 @@ def train(threshold_pos=0.001,
         "gamma": 0.9,
         "batch_size": 256,
         "train_freq": 1,
-        "buffer_size": 500_000,
+        "buffer_size": 100_000,
         "learning_rate": linear_schedule(0.001),
         "learning_starts": 5000,
         "gradient_steps": -1,
@@ -224,8 +224,8 @@ def train(threshold_pos=0.001,
     log_callback1 = log_callback.CustomCallback()
     success_callback = StopTrainingOnSuccessRate(
         vec_env=eval_env, 
-        max_no_improvement_evals=10, 
-        success_threshold=0.90,  
+        max_no_improvement_evals=20, 
+        success_threshold=0.95,  
         min_evals=1, verbose=1, 
         model_name=model_name,
         model_save_path=f'./best_models/{ran}'
@@ -241,11 +241,11 @@ def train(threshold_pos=0.001,
     # --- STAGE 1: BASELINE TRAINING ---
     print("\n=== Stage 1: Base TD3 Training ===")
     model.learn(1_000_000, callback=callback)
-
+    wandb.finish()
     # --- STAGE 2: ITERATIVE FORCE THRESHOLD SEARCH ---
     best_threshold = current_force_threshold
-    best_model_save_path = f'./best_models/{ran}/{model_name}/{model_name}.zip'
-
+    best_model_save_path = f'./best_models/{ran}/{model_name}/{model_name}'
+    best_stats_save_path = f'./best_models/{ran}/{model_name}/vec_normalize.pkl'
     if run_iterative_search:
         print("\n=== Stage 2: Iterative Threshold Decay Search ===")
         
@@ -260,6 +260,8 @@ def train(threshold_pos=0.001,
             current_force_threshold = current_force_threshold * decay_factor
 
         for iteration in range(1, max_tuning_iters + 1):
+            if log == 1:
+                wandb.init(project="Chapter3-Results-2", tags=tags, name=f"{name}_iter{iteration}", notes=f"Git Commit: {commit}", sync_tensorboard=True, save_code=True)
             print(f"\n--- Search Iteration {iteration}/{max_tuning_iters} | Target Threshold: {current_force_threshold:.4f}N ---")
 
             # Update threshold in environment specs
@@ -269,12 +271,24 @@ def train(threshold_pos=0.001,
             # Re-create environments with updated threshold
             env.close()
             eval_env.close()
+
             
-            env = make_vec_env('gym_fracture:anklesurg-v2', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=DummyVecEnv, seed=seed)
-            env = VecNormalize(env, norm_obs=True, norm_reward=False)
+            raw_env = make_vec_env('gym_fracture:anklesurg-v2', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=DummyVecEnv, seed=seed)
+
+            if os.path.exists(best_stats_save_path):
+                env = VecNormalize.load(best_stats_save_path, raw_env)
+                env.training = True
+                env.norm_reward = False
+            else:
+                env = VecNormalize(raw_env, norm_obs=True, norm_reward=False)
+            #env = VecNormalize(raw_env, norm_obs=True, norm_reward=False)
             
             eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed=eval_seed)
             eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
+            if os.path.exists(best_stats_save_path):
+                eval_env = VecNormalize.load(best_stats_save_path, eval_env)
+            else:
+                eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
             eval_env.training = False
 
             # Attach updated environments to current model & fine-tune
@@ -293,18 +307,28 @@ def train(threshold_pos=0.001,
                     "Tuning/Mean Peak Force": iter_mean_force
                 })
 
-            # Check termination criteria based on policy success drop
             if iter_succ >= target_success_rate:
                 best_threshold = current_force_threshold
-                # Save checkpoint of best tuned model
-                tuned_path = f'./best_models/{ran}/{model_name}_tuned_iter{iteration}'
-                model.save(tuned_path)
-                best_model_save_path = f"{tuned_path}.zip"
+                tuned_dir = f'./best_models/{ran}/{model_name}_tuned_iter{iteration}'
+                os.makedirs(tuned_dir, exist_ok=True)
+                
+                # 2. SAVE BOTH MODEL WEIGHTS AND MATCHING VECNORMALIZE STATS
+                model_save_path = f"{tuned_dir}/{model_name}"
+                stats_save_path = f"{tuned_dir}/vec_normalize.pkl"
+                
+                model.save(model_save_path)
+                env.save(stats_save_path)
+                
+                # Update tracking paths for subsequent iterations and Stage 3
+                best_model_save_path = model_save_path
+                best_stats_save_path = stats_save_path
+                
                 current_force_threshold *= decay_factor
+                if log == 1:
+                    wandb.finish()
             else:
                 print(f"Success rate drop detected ({iter_succ*100:.1f}% < {target_success_rate*100:.1f}%). Halting search.")
                 break
-
         print(f"\nOptimal Contact Force Threshold Determined: {best_threshold:.4f}N")
 
     # --- STAGE 3: SOFT EVALUATION BENCHMARK ---
@@ -335,10 +359,9 @@ def train(threshold_pos=0.001,
     }
 
     soft_eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=10, env_kwargs=soft_eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed=eval_seed)
-    stats_path = f'./best_models/{ran}/{model_name}/vec_normalize.pkl'
-    
-    if os.path.exists(stats_path):
-        soft_eval_env = VecNormalize.load(stats_path, soft_eval_env)
+
+    if os.path.exists(best_stats_save_path):
+        soft_eval_env = VecNormalize.load(best_stats_save_path, soft_eval_env)
     else:
         soft_eval_env = VecNormalize(soft_eval_env, norm_obs=True, norm_reward=False)
         
