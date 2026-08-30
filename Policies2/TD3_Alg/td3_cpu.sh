@@ -4,7 +4,6 @@
 #SBATCH --ntasks=1            # 4 agents total
 #SBATCH --cpus-per-task=5    # 4 CPUs per agent
 #SBATCH --mem=40G              # 8GB RAM per agent
-#SBATCH --array=1-24
 #SBATCH --time=30:00:00
 #SBATCH --output=out_%A_%a.out
 
@@ -24,7 +23,7 @@ srun --export=ALL $PYTHON_EXEC td3_soft.py \
                 --maxforce 5 \
                 --num_springs 1 \
                 --youngs_modulus 1.5e6 \
-                --maximum_contact_force_threshold 0.1 \
+                --maximum_contact_force_threshold 0.2 \
                 --softtissue spring \
                 --render_mode 'direct' \
                 --youngs_modulus_type None \
