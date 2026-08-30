@@ -24,7 +24,7 @@ srun --export=ALL $PYTHON_EXEC td3_soft.py \
                 --maxforce 5 \
                 --num_springs 1 \
                 --youngs_modulus 1.5e6 \
-                --maximum_contact_force_threshold $CONTACTFORCE \
+                --maximum_contact_force_threshold 0.1 \
                 --softtissue spring \
                 --render_mode 'direct' \
                 --youngs_modulus_type None \
