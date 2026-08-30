@@ -245,7 +245,7 @@ def train(threshold_pos=0.001,
     # # --- STAGE 2: ITERATIVE FORCE THRESHOLD SEARCH ---
     # # --- STAGE 2: ITERATIVE FORCE THRESHOLD SEARCH ---
     best_threshold = current_force_threshold
-    best_model_save_path = './best_models/1/model-spring_contact_0.0005_08300912_1' #f'./best_models/{ran}/{model_name}/{model_name}'
+    best_model_save_path = './best_models/1/model-spring_contact_0.0005_08300912_1/model-spring_contact_0.0005_08300912_1' #f'./best_models/{ran}/{model_name}/{model_name}'
     best_stats_save_path = '/best_models/1/model-spring_contact_0.0005_08300912_1/vec_normalize.pkl'
 
     if run_iterative_search:
