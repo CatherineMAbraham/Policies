@@ -22,13 +22,13 @@ srun --export=ALL $PYTHON_EXEC td3_soft.py \
                 --threshold_ori 0.5 \
                 --action_type euler \
                 --maxforce 5 \
-                --num_springs 3 \
-                --youngs_modulus 5e5 \
+                --num_springs 1 \
+                --youngs_modulus 1.5e6 \
                 --maximum_contact_force_threshold 0.1 \
                 --softtissue spring \
                 --render_mode 'direct' \
                 --youngs_modulus_type None \
-                --contact_type 1 \
+                --contact_type 0 \
                 --seed 1 \
                 --ran 1
 
