@@ -250,7 +250,7 @@ def train(threshold_pos=0.001,
 
     if run_iterative_search:
         print("\n=== Stage 2: Iterative Threshold Decay Search ===")
-        model = TD3.load(best_model_save_path)
+        model = TD3.load(env=env, path=best_model_save_path)
         # Evaluate baseline performance
         base_succ, mean_p_force, max_p_force = run_threshold_evaluation(model, eval_env, n_episodes=30)
         print(f"[Iter 0] Base Threshold: {current_force_threshold:.3f}N | Success: {base_succ*100:.1f}% | Mean Peak Force: {mean_p_force:.3f}N")
