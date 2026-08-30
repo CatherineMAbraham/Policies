@@ -138,8 +138,8 @@ def train(threshold_pos=0.001,
     tags = [f"{contact_type}", f"{max_contact_force_threshold}", "baseline"]
     model_name = f'model-{name}'
     
-    if log == 1:
-        wandb.init(project="Chapter3-Results-2", tags=tags, name=name, notes=f"Git Commit: {commit}", sync_tensorboard=True, save_code=True)
+    # if log == 1:
+    #     wandb.init(project="Chapter3-Results-2", tags=tags, name=name, notes=f"Git Commit: {commit}", sync_tensorboard=True, save_code=True)
 
     current_force_threshold = max_contact_force_threshold
 
@@ -185,11 +185,11 @@ def train(threshold_pos=0.001,
         "seed": seed
     }
       
-    env = make_vec_env('gym_fracture:anklesurg-v2', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=DummyVecEnv, seed=seed)
-    env = VecNormalize(env, norm_obs=True, norm_reward=False)
-    action_noise = NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.1 * np.ones(env.action_space.shape[0]))
+    # env = make_vec_env('gym_fracture:anklesurg-v2', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=DummyVecEnv, seed=seed)
+    # env = VecNormalize(env, norm_obs=True, norm_reward=False)
+    # action_noise = NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.1 * np.ones(env.action_space.shape[0]))
 
-    model = TD3(**td3_kwargs, env=env, action_noise=action_noise)
+    # model = TD3(**td3_kwargs, env=env, action_noise=action_noise)
 
     eval_env_kwargs = {
         'reward_type': 'sparse',
@@ -214,12 +214,12 @@ def train(threshold_pos=0.001,
         'randomise_ligs': randomise_ligs,
         'randomise_num_springs': randomise_num_springs,
         'render_mode': 'direct'
-    }
+     }
     
-    eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed=eval_seed)
-    eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
-    eval_env.obs_rms = env.obs_rms
-    eval_env.training = False
+    # eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed=eval_seed)
+    # eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
+    # eval_env.obs_rms = env.obs_rms
+    # eval_env.training = False
 
     log_callback1 = log_callback.CustomCallback()
     success_callback = StopTrainingOnSuccessRate(
@@ -238,23 +238,25 @@ def train(threshold_pos=0.001,
 
     callback = [eval_callback, log_callback1] if log == 1 else [eval_callback]
     
-    # --- STAGE 1: BASELINE TRAINING ---
-    print("\n=== Stage 1: Base TD3 Training ===")
-    model.learn(1_000_000, callback=callback)
-    wandb.finish()
-    # --- STAGE 2: ITERATIVE FORCE THRESHOLD SEARCH ---
+    # # --- STAGE 1: BASELINE TRAINING ---
+    # print("\n=== Stage 1: Base TD3 Training ===")
+    # model.learn(1_000_000, callback=callback)
+    # wandb.finish()
+    # # --- STAGE 2: ITERATIVE FORCE THRESHOLD SEARCH ---
+    # # --- STAGE 2: ITERATIVE FORCE THRESHOLD SEARCH ---
     best_threshold = current_force_threshold
-    best_model_save_path = f'./best_models/{ran}/{model_name}/{model_name}'
-    best_stats_save_path = f'./best_models/{ran}/{model_name}/vec_normalize.pkl'
+    best_model_save_path = './best_models/1/model-spring_contact_0.0005_08300912_1' #f'./best_models/{ran}/{model_name}/{model_name}'
+    best_stats_save_path = '/best_models/1/model-spring_contact_0.0005_08300912_1/vec_normalize.pkl'
+
     if run_iterative_search:
         print("\n=== Stage 2: Iterative Threshold Decay Search ===")
-        
+        model = TD3.load(best_model_save_path)
         # Evaluate baseline performance
         base_succ, mean_p_force, max_p_force = run_threshold_evaluation(model, eval_env, n_episodes=30)
         print(f"[Iter 0] Base Threshold: {current_force_threshold:.3f}N | Success: {base_succ*100:.1f}% | Mean Peak Force: {mean_p_force:.3f}N")
 
         # Set initial decay boundary relative to observed policy behavior
-        if max_p_force > 0 and max_p_force < current_force_threshold:
+        if 0 < max_p_force < current_force_threshold:
             current_force_threshold = max_p_force * decay_factor
         else:
             current_force_threshold = current_force_threshold * decay_factor
@@ -262,38 +264,53 @@ def train(threshold_pos=0.001,
         for iteration in range(1, max_tuning_iters + 1):
             if log == 1:
                 wandb.init(project="Chapter3-Results-2", tags=tags, name=f"{name}_iter{iteration}", notes=f"Git Commit: {commit}", sync_tensorboard=True, save_code=True)
+            
             print(f"\n--- Search Iteration {iteration}/{max_tuning_iters} | Target Threshold: {current_force_threshold:.4f}N ---")
 
             # Update threshold in environment specs
             env_kwargs['maximum_contact_force_threshold'] = current_force_threshold
             eval_env_kwargs['maximum_contact_force_threshold'] = current_force_threshold
 
-            # Re-create environments with updated threshold
+            # Close old environments safely
             env.close()
             eval_env.close()
 
-            
+            # Re-create training environment with updated threshold
             raw_env = make_vec_env('gym_fracture:anklesurg-v2', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=DummyVecEnv, seed=seed)
-
             if os.path.exists(best_stats_save_path):
                 env = VecNormalize.load(best_stats_save_path, raw_env)
                 env.training = True
                 env.norm_reward = False
             else:
                 env = VecNormalize(raw_env, norm_obs=True, norm_reward=False)
-            #env = VecNormalize(raw_env, norm_obs=True, norm_reward=False)
-            
-            eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed=eval_seed)
-            eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
+
+            # Re-create evaluation environment using DummyVecEnv for stability
+            eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=DummyVecEnv, seed=eval_seed)
             if os.path.exists(best_stats_save_path):
                 eval_env = VecNormalize.load(best_stats_save_path, eval_env)
             else:
                 eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
             eval_env.training = False
 
-            # Attach updated environments to current model & fine-tune
+            # RE-INSTANTIATE CALLBACKS WITH NEW EVAL_ENV
+            iter_success_callback = StopTrainingOnSuccessRate(
+                vec_env=eval_env, 
+                max_no_improvement_evals=5, 
+                success_threshold=target_success_rate,  
+                min_evals=1, verbose=1, 
+                model_name=model_name,
+                model_save_path=f'./best_models/{ran}'
+            )
+            iter_eval_callback = EvalCallback(
+                eval_env, eval_freq=10000,
+                deterministic=True, n_eval_episodes=50,
+                callback_after_eval=iter_success_callback
+            )
+            iter_callbacks = [iter_eval_callback, log_callback1] if log == 1 else [iter_eval_callback]
+
+            # Attach updated environments and run fine-tuning
             model.set_env(env)
-            model.learn(total_timesteps=fine_tune_timesteps,callback=callback, log_interval=10)
+            model.learn(total_timesteps=fine_tune_timesteps, callback=iter_callbacks)
 
             # Evaluate performance at new threshold
             iter_succ, iter_mean_force, _ = run_threshold_evaluation(model, eval_env, n_episodes=30)
@@ -312,14 +329,12 @@ def train(threshold_pos=0.001,
                 tuned_dir = f'./best_models/{ran}/{model_name}_tuned_iter{iteration}'
                 os.makedirs(tuned_dir, exist_ok=True)
                 
-                # 2. SAVE BOTH MODEL WEIGHTS AND MATCHING VECNORMALIZE STATS
                 model_save_path = f"{tuned_dir}/{model_name}"
                 stats_save_path = f"{tuned_dir}/vec_normalize.pkl"
                 
                 model.save(model_save_path)
                 env.save(stats_save_path)
                 
-                # Update tracking paths for subsequent iterations and Stage 3
                 best_model_save_path = model_save_path
                 best_stats_save_path = stats_save_path
                 
@@ -328,7 +343,10 @@ def train(threshold_pos=0.001,
                     wandb.finish()
             else:
                 print(f"Success rate drop detected ({iter_succ*100:.1f}% < {target_success_rate*100:.1f}%). Halting search.")
+                if log == 1:
+                    wandb.finish()
                 break
+
         print(f"\nOptimal Contact Force Threshold Determined: {best_threshold:.4f}N")
 
     # --- STAGE 3: SOFT EVALUATION BENCHMARK ---
