@@ -185,11 +185,11 @@ def train(threshold_pos=0.001,
         "seed": seed
     }
       
-    # env = make_vec_env('gym_fracture:anklesurg-v2', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=DummyVecEnv, seed=seed)
-    # env = VecNormalize(env, norm_obs=True, norm_reward=False)
-    # action_noise = NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.1 * np.ones(env.action_space.shape[0]))
+    env = make_vec_env('gym_fracture:anklesurg-v2', env_kwargs=env_kwargs, n_envs=1, vec_env_cls=DummyVecEnv, seed=seed)
+    env = VecNormalize(env, norm_obs=True, norm_reward=False)
+    action_noise = NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.1 * np.ones(env.action_space.shape[0]))
 
-    # model = TD3(**td3_kwargs, env=env, action_noise=action_noise)
+    model = TD3(**td3_kwargs, env=env, action_noise=action_noise)
 
     eval_env_kwargs = {
         'reward_type': 'sparse',
@@ -216,10 +216,10 @@ def train(threshold_pos=0.001,
         'render_mode': 'direct'
      }
     
-    # eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed=eval_seed)
-    # eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
-    # eval_env.obs_rms = env.obs_rms
-    # eval_env.training = False
+    eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed=eval_seed)
+    eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False)
+    eval_env.obs_rms = env.obs_rms
+    eval_env.training = False
 
     log_callback1 = log_callback.CustomCallback()
     success_callback = StopTrainingOnSuccessRate(
