@@ -46,7 +46,7 @@ def linear_schedule(initial_value: float) -> Callable[[float], float]:
     return func
 
 
-def run_threshold_evaluation(model, eval_env, n_episodes=30):
+def run_threshold_evaluation(model, eval_env, n_episodes=50):
     """Evaluates the model over n_episodes and records success rate and peak contact forces."""
     successes = []
     peak_contact_forces = []
@@ -293,7 +293,7 @@ def train(threshold_pos=0.001,
 
             # Attach updated environments to current model & fine-tune
             model.set_env(env)
-            model.learn(total_timesteps=fine_tune_timesteps, log_interval=10)
+            model.learn(total_timesteps=fine_tune_timesteps,callback=callback, log_interval=10)
 
             # Evaluate performance at new threshold
             iter_succ, iter_mean_force, _ = run_threshold_evaluation(model, eval_env, n_episodes=30)
