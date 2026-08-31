@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1            # 4 agents total
 #SBATCH --cpus-per-task=5      # 4 CPUs per agent
 #SBATCH --mem=80G              # 8GB RAM per agent
-#SBATCH --time=30:00:00
+#SBATCH --time=15:00:00
 #SBATCH --output=out_%A_%a.out
 
 
@@ -15,7 +15,7 @@ source activate softsurg9
 
 # Run the script
 #srun --export=ALL 
-python td3_cl.py \
+python td3_soft.py \
     --threshold_pos 0.0005 \
     --threshold_ori 0.5 \
     --action_type euler \
@@ -26,7 +26,7 @@ python td3_cl.py \
     --softtissue spring \
     --render_mode 'direct' \
     --youngs_modulus_type None \
-    --contact_type 1 \
+    --contact_type 0 \
     --log 1 \
-    --seed 1 \
-    --ran 1
+    --seed 6\
+    --ran 6
