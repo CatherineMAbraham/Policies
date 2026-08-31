@@ -31,5 +31,5 @@ srun --export=ALL $PYTHON_EXEC td3_soft.py \
                 --youngs_modulus_type None \
                 --contact_type 0 \
                 --seed $TASK_ID \
-                --ran 1
+                --ran $TASK_ID \
 
