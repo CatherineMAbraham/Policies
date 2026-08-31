@@ -220,8 +220,8 @@ def train(threshold_pos=0.001,
     eval_env.training = False
     log_callback1 = log_callback.CustomCallback()
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
-                                                    max_no_improvement_evals=20, 
-                                                    success_threshold=0.80,  
+                                                    max_no_improvement_evals=1, 
+                                                    success_threshold=1,  
                                                     min_evals=1, verbose=1, 
                                                     model_name = model_name,
                                                     model_save_path=f'./best_models/{ran}')
