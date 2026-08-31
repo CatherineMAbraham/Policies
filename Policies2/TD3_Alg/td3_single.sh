@@ -10,7 +10,7 @@
 
 module load Anaconda3/2024.02-1
 
-source activate softsurg9
+source activate softsurg
 # Read the correct line from params_curr_compare.csv
 
 # Run the script
@@ -24,9 +24,9 @@ python td3_soft.py \
     --num_springs 3 \
     --youngs_modulus 5e5 \
     --softtissue spring \
-    --render_mode 'direct' \
+    --render_mode 'human' \
     --youngs_modulus_type None \
     --contact_type 0 \
-    --log 1 \
+    --log 0 \
     --seed 6\
     --ran 6
