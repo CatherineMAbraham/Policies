@@ -27,6 +27,6 @@ python td3_soft.py \
     --render_mode 'direct' \
     --youngs_modulus_type None \
     --contact_type 0 \
-    --log 0 \
+    --log 1 \
     --seed 6\
     --ran 6
