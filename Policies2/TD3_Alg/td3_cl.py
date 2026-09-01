@@ -42,7 +42,7 @@ def run_threshold_evaluation(model, eval_env, n_episodes=50):
     max_peak_force = max(peak_contact_forces) if peak_contact_forces else 0.0
     
     return avg_success, mean_peak_force, max_peak_force
-def get_next_force_threshold(current_threshold,mean_peak_force):
+def get_next_force_threshold(current_threshold, mean_peak_force):
     """
     Decrease the current force threshold by 20%, ensuring it doesn't go below 0.
 
@@ -50,7 +50,7 @@ def get_next_force_threshold(current_threshold,mean_peak_force):
     :param mean_peak_force: The mean peak force observed.
     :return: The next force threshold.
     """
-    return mean_peak_force*0.9
+    return mean_peak_force*0.95
 
 
 def get_git_commit_hash(repo_path):
@@ -184,31 +184,28 @@ def train(threshold_pos=0.001,
         'render_mode': render_mode}
         #"0.025 -0.04 0" rpy="0 1.57 0"
    
-    # td3_kwargs = {"tau": 0.1,
-    #                "gamma": 0.9,
-    #                "batch_size":  256,
-    #                "train_freq":  1,
-    #                "buffer_size": 500_000,
-    #                "learning_rate": linear_schedule(0.001),
-    #                "learning_starts":5000,
-    #                "gradient_steps": -1,
-    #                "policy": "MultiInputPolicy",
-    #                "replay_buffer_class": HerReplayBuffer,
-    #                "replay_buffer_kwargs": dict(n_sampled_goal=4,goal_selection_strategy='future'),
-    #                "policy_kwargs": dict(net_arch=[256, 256,256]),
-    #                "tensorboard_log": f'./logs/{ran}',
-    #                "seed": seed}
+    td3_kwargs = {"tau": 0.1,
+                   "gamma": 0.9,
+                   "batch_size":  256,
+                   "train_freq":  1,
+                   "buffer_size": 500_000,
+                   "learning_rate": linear_schedule(0.001),
+                   "learning_starts":5000,
+                   "gradient_steps": -1,
+                   "policy": "MultiInputPolicy",
+                   "replay_buffer_class": HerReplayBuffer,
+                   "replay_buffer_kwargs": dict(n_sampled_goal=4,goal_selection_strategy='future'),
+                   "policy_kwargs": dict(net_arch=[256, 256,256]),
+                   "tensorboard_log": f'./logs/{ran}',
+                   "seed": seed}
+      
     env = make_vec_env('gym_fracture:anklesurg-v2', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
-    model =TD3.load('./best_models/6/model-spring_contact_0.0005_09011404_6-stage-1/model-spring_contact_0.0005_09011404_6-stage-1',env=env)
-    model.load_replay_buffer('./best_models/6/model-spring_contact_0.0005_09011404_6-stage-1/model-spring_contact_0.0005_09011404_6-stage-1-rb')
-    stats_path = './best_models/6/model-spring_contact_0.0005_09011404_6-stage-1/vec_normalize.pkl'
-    
-    env = VecNormalize.load(stats_path, env)#VecNormalize(env, norm_obs=True, norm_reward=False)
+    env = VecNormalize(env, norm_obs=True, norm_reward=False)
     #action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.02 * np.ones(env.action_space.shape[0]))
     action_noise = NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.1 * np.ones(env.action_space.shape[0]))
 
 
-    #model = TD3(**td3_kwargs, env=env, action_noise=action_noise)
+    model = TD3(**td3_kwargs, env=env, action_noise=action_noise)
 
 
     eval_env_kwargs = {
@@ -259,15 +256,14 @@ def train(threshold_pos=0.001,
     
     current_maximum_force_threshold = max_contact_force_threshold
     current_best_model_path = None
-    
+    model =TD3.load('./best_models/6/model-spring_contact_0.0005_09011404_6-stage-1/model-spring_contact_0.0005_09011404_6-stage-1')
     for i in range(10):
             tags = ['cl',f'{i+1}',f'{current_maximum_force_threshold}']
-            if log == 1 :
+            if log == 1:
                 wandb.init(project="Chapter3-Results-3", tags=tags, name = (f'{model_name}-{i+1}'),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)
             print(f"\n--- Starting Curriculum Stage {i+1}/10 ---")
             print(f"Current Thresholds -> Force (N): {current_maximum_force_threshold:.5f}")
             model_name = f'model-{name}-stage-{i+1}'
-            env.training = True  # Ensure VecNormalize stats update as observations change with new threshold
             for e in env.envs:
                 e.unwrapped.maximum_contact_force_threshold = current_maximum_force_threshold
                 
@@ -286,11 +282,11 @@ def train(threshold_pos=0.001,
             eval_callback = EvalCallback(eval_env,  eval_freq=10000,
                                         deterministic=True, n_eval_episodes=50,
                                         callback_after_eval=success_callback)
-            if i > 0:
-                model.learn(1_000_000, callback=eval_callback,reset_num_timesteps=True, tb_log_name=f'{model_name}_stage_{i+1}')
+    
+            model.learn(1_000_000, callback=eval_callback,reset_num_timesteps=True, tb_log_name=f'{model_name}_stage_{i+1}')
             success, mean_peak_force, max_peak_force = run_threshold_evaluation(model, eval_env, n_episodes=50)
             print(f"Evaluation Results for Stage {i+1}: Success Rate: {success*100:.2f}%, Mean Peak Contact Force: {mean_peak_force:.4f}N, Max Peak Contact Force: {max_peak_force:.4f}N")
-            if success < 0.9 and i >0:
+            if success < 0.9:
                 print(f"Success rate below 90% ({success*100:.2f}%). Stopping curriculum training.")
                 wandb.log({"stopping_threshold": current_maximum_force_threshold})
                 break
@@ -302,13 +298,12 @@ def train(threshold_pos=0.001,
             wandb.log({"current_maximum_force_threshold": current_maximum_force_threshold})
             
             # Load the best model from this stage before proceeding to the next stage
-            if current_best_model_path and os.path.exists(current_best_model_path) and i >0:
+            if current_best_model_path and os.path.exists(current_best_model_path):
                 model = f'{current_best_model_path}/{model_name}'
                 model = TD3.load(model, env=env)
                 optimal_max_contact_threshold = current_maximum_force_threshold
                 print(f"Loaded best model from stage {i+1} for next curriculum stage")
-            else:
-                model = model
+    
     vtk_file = 'rect0009.vtk'
     soft_eval_env_kwargs = {
                 'reward_type': 'sparse',
