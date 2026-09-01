@@ -134,7 +134,7 @@ def train(threshold_pos=0.001,
     tags = [
     f"{contact_type}",
     f"{max_contact_force_threshold}",
-    "baseline",'newobs'
+    "contact",'newobs'
 ]
     model_name = f'model-{name}'
     if log==1:
