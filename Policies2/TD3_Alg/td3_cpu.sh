@@ -31,4 +31,4 @@ srun --export=ALL $PYTHON_EXEC td3_soft.py \
                 --log 1 \
                 --contact_type 0 \
                 --seed $TASK_ID \
-                --ran 1 \
+                --ran $TASK_ID \
