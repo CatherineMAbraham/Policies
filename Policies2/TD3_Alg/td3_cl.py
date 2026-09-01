@@ -302,12 +302,13 @@ def train(threshold_pos=0.001,
             wandb.log({"current_maximum_force_threshold": current_maximum_force_threshold})
             
             # Load the best model from this stage before proceeding to the next stage
-            if current_best_model_path and os.path.exists(current_best_model_path):
+            if current_best_model_path and os.path.exists(current_best_model_path) and i >0:
                 model = f'{current_best_model_path}/{model_name}'
                 model = TD3.load(model, env=env)
                 optimal_max_contact_threshold = current_maximum_force_threshold
                 print(f"Loaded best model from stage {i+1} for next curriculum stage")
-    
+            else:
+                model = model
     vtk_file = 'rect0009.vtk'
     soft_eval_env_kwargs = {
                 'reward_type': 'sparse',
