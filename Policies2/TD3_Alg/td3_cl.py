@@ -290,7 +290,7 @@ def train(threshold_pos=0.001,
                 model.learn(1_000_000, callback=eval_callback,reset_num_timesteps=True, tb_log_name=f'{model_name}_stage_{i+1}')
             success, mean_peak_force, max_peak_force = run_threshold_evaluation(model, eval_env, n_episodes=50)
             print(f"Evaluation Results for Stage {i+1}: Success Rate: {success*100:.2f}%, Mean Peak Contact Force: {mean_peak_force:.4f}N, Max Peak Contact Force: {max_peak_force:.4f}N")
-            if success < 0.9:
+            if success < 0.9 and i >0:
                 print(f"Success rate below 90% ({success*100:.2f}%). Stopping curriculum training.")
                 wandb.log({"stopping_threshold": current_maximum_force_threshold})
                 break
