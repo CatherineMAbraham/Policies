@@ -198,10 +198,11 @@ def train(threshold_pos=0.001,
     #                "policy_kwargs": dict(net_arch=[256, 256,256]),
     #                "tensorboard_log": f'./logs/{ran}',
     #                "seed": seed}
-    model =TD3.load('./best_models/6/model-spring_contact_0.0005_09011404_6-stage-1/model-spring_contact_0.0005_09011404_6-stage-1')
+    env = make_vec_env('gym_fracture:anklesurg-v2', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
+    model =TD3.load('./best_models/6/model-spring_contact_0.0005_09011404_6-stage-1/model-spring_contact_0.0005_09011404_6-stage-1',env=env)
     model.load_replay_buffer('./best_models/6/model-spring_contact_0.0005_09011404_6-stage-1/model-spring_contact_0.0005_09011404_6-stage-1-rb')
     stats_path = './best_models/6/model-spring_contact_0.0005_09011404_6-stage-1/vec_normalize.pkl'
-    env = make_vec_env('gym_fracture:anklesurg-v2', env_kwargs=env_kwargs, n_envs=1,vec_env_cls=DummyVecEnv, seed=seed)
+    
     env = VecNormalize.load(stats_path, env)#VecNormalize(env, norm_obs=True, norm_reward=False)
     #action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.02 * np.ones(env.action_space.shape[0]))
     action_noise = NormalActionNoise(mean=np.zeros(env.action_space.shape[0]), sigma=0.1 * np.ones(env.action_space.shape[0]))
