@@ -286,9 +286,7 @@ def train(threshold_pos=0.001,
             eval_callback = EvalCallback(eval_env,  eval_freq=10000,
                                         deterministic=True, n_eval_episodes=50,
                                         callback_after_eval=success_callback)
-            if i == 0:
-                continue
-            else:
+            if i > 0:
                 model.learn(1_000_000, callback=eval_callback,reset_num_timesteps=True, tb_log_name=f'{model_name}_stage_{i+1}')
             success, mean_peak_force, max_peak_force = run_threshold_evaluation(model, eval_env, n_episodes=50)
             print(f"Evaluation Results for Stage {i+1}: Success Rate: {success*100:.2f}%, Mean Peak Contact Force: {mean_peak_force:.4f}N, Max Peak Contact Force: {max_peak_force:.4f}N")
