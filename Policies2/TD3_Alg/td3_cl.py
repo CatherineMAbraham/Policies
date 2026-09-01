@@ -252,11 +252,11 @@ def train(threshold_pos=0.001,
     else:
         callback = [eval_callback]
     
-    wandb.finish()
+    
     
     current_maximum_force_threshold = max_contact_force_threshold
     current_best_model_path = None
-    model =TD3.load('./best_models/6/model-spring_contact_0.0005_09011404_6-stage-1/model-spring_contact_0.0005_09011404_6-stage-1')
+    
     for i in range(10):
             tags = ['cl',f'{i+1}',f'{current_maximum_force_threshold}']
             if log == 1:
@@ -303,6 +303,7 @@ def train(threshold_pos=0.001,
                 model = TD3.load(model, env=env)
                 optimal_max_contact_threshold = current_maximum_force_threshold
                 print(f"Loaded best model from stage {i+1} for next curriculum stage")
+                wandb.finish()
     
     vtk_file = 'rect0009.vtk'
     soft_eval_env_kwargs = {
