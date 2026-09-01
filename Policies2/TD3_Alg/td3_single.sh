@@ -15,18 +15,18 @@ source activate softsurg
 
 # Run the script
 #srun --export=ALL 
-python td3_soft.py \
+python td3_cl.py \
     --threshold_pos 0.0005 \
     --threshold_ori 0.5 \
     --action_type euler \
     --maxforce 5 \
-    --maximum_contact_force_threshold 0.1 \
+    --maximum_contact_force_threshold 0.5 \
     --num_springs 3 \
     --youngs_modulus 5e5 \
     --softtissue spring \
     --render_mode 'direct' \
     --youngs_modulus_type None \
-    --contact_type 0 \
+    --contact_type 1 \
     --log 1 \
     --seed 6\
     --ran 6

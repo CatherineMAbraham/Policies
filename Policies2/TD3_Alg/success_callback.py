@@ -17,6 +17,7 @@ class StopTrainingOnSuccessRate(BaseCallback):
                  min_evals: int = 0, 
                  verbose: int = 0,
                  model_name: str = "best_model",
+                 save_replay_buffer: bool = False,
                  model_save_path: str = None):
         super().__init__(verbose=verbose)
         self.vec_env = vec_env
@@ -28,7 +29,7 @@ class StopTrainingOnSuccessRate(BaseCallback):
         self.model_save_path = model_save_path
         self.model_name = model_name
         self.threshold_met = False
-        
+        self.save_replay_buffer = save_replay_buffer
         if self.model_save_path:
             self.model_path = os.path.join(self.model_save_path, self.model_name)
             os.makedirs(self.model_path, exist_ok=True)
@@ -42,9 +43,9 @@ class StopTrainingOnSuccessRate(BaseCallback):
         
         # Save replay buffer if it exists (e.g., DQN, SAC, TD3)
         # don't need this for eval so saves space 
-        # if hasattr(model, "save_replay_buffer"):
-        #     rb_path = os.path.join(self.model_path, f"{self.model_name}-rb.zip")
-        #     model.save_replay_buffer(rb_path)
+        if  self.save_replay_buffer and hasattr(model, 'replay_buffer') and model.replay_buffer is not None:
+            rb_path = os.path.join(self.model_path, f"{self.model_name}-rb")
+            model.save_replay_buffer(rb_path)
             
         if self.verbose >= 1:
             print(f"Model and env stats saved to {self.model_path}")
