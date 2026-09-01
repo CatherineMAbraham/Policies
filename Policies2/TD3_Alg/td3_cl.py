@@ -257,7 +257,7 @@ def train(threshold_pos=0.001,
     current_best_model_path = None
     
     for i in range(10):
-            tags = ['cl',{i+1},{current_maximum_force_threshold}]
+            tags = ['cl',f'{i+1}',f'{current_maximum_force_threshold}']
             if log == 1:
                 wandb.init(project="Chapter3-Results-3", tags=tags, name = (f'{model_name}-{i+1}'),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)
             print(f"\n--- Starting Curriculum Stage {i+1}/10 ---")
