@@ -15,7 +15,7 @@ source activate softsurg9
 
 # Run the script
 #srun --export=ALL 
-python td3_cl.py \
+python td3_soft.py \
     --threshold_pos 0.0005 \
     --threshold_ori 0.5 \
     --action_type euler \
@@ -26,6 +26,8 @@ python td3_cl.py \
     --softtissue spring \
     --render_mode 'direct' \
     --youngs_modulus_type None \
+    --randomise_ligs 1\
+    --randomise_num_springs 1\
     --contact_type 1 \
     --log 1 \
     --seed 6\
