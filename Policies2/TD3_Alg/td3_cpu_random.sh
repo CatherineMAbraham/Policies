@@ -30,6 +30,6 @@ python td3_soft.py \
                 --randomise_num_springs 0 \
                 --contact_type 1 \
                 --seed 1 \
-                --log 0\
+                --log 1\
                 --ran 1
 
