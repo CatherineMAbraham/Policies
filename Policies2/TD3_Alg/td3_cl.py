@@ -260,7 +260,7 @@ def train(threshold_pos=0.001,
     for i in range(10):
             tags = ['cl',f'{i+1}',f'{current_maximum_force_threshold}']
             if log == 1:
-                wandb.init(project="Chapter3-Results-3", tags=tags, name = (f'{model_name}-{i+1}'),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)
+                wandb.init(project="Chapter3-Results-CL", tags=tags, name = (f'{model_name}-{i+1}'),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)
             print(f"\n--- Starting Curriculum Stage {i+1}/10 ---")
             print(f"Current Thresholds -> Force (N): {current_maximum_force_threshold:.5f}")
             model_name = f'model-{name}-stage-{i+1}'
