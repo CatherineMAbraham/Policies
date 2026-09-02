@@ -26,7 +26,7 @@ python td3_soft.py \
                 --maximum_contact_force_threshold 1.0 \
                 --softtissue spring \
                 --render_mode 'direct' \
-                --youngs_modulus_type testing \
+                --youngs_modulus_type None \
                 --randomise_foot_dynamics 1\
                 --randomise_num_springs 0 \
                 --contact_type 1 \
