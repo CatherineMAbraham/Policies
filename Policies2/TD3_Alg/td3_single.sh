@@ -10,7 +10,7 @@
 
 module load Anaconda3/2024.02-1
 
-source activate softsurg
+source activate softsurg9
 # Read the correct line from params_curr_compare.csv
 
 # Run the script
