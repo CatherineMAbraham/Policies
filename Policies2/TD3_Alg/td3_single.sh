@@ -15,7 +15,7 @@ source activate softsurg
 
 # Run the script
 #srun --export=ALL 
-python td3_cl.py \
+python td3_soft.py \
     --threshold_pos 0.0005 \
     --threshold_ori 0.5 \
     --action_type euler \
