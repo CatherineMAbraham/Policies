@@ -536,4 +536,5 @@ if __name__ == "__main__":
           youngs_modulus_type=args.youngs_modulus_type,
           randomise_ligs=args.randomise_ligs,
           randomise_start=args.randomise_start,
+          randomise_num_springs=args.randomise_num_springs,
           seed=args.seed)

@@ -24,11 +24,11 @@ python td3_soft.py \
     --num_springs 3 \
     --youngs_modulus 5e5 \
     --softtissue spring \
-    --render_mode 'direct' \
-    --youngs_modulus_type None \
-    --randomise_ligs 1\
+    --render_mode 'human' \
+    --youngs_modulus_type testing \
+    --randomise_ligs 0\
     --randomise_num_springs 1\
     --contact_type 1 \
-    --log 1 \
+    --log 0 \
     --seed 6\
     --ran 6
