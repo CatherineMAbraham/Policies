@@ -44,13 +44,13 @@ def run_threshold_evaluation(model, eval_env, n_episodes=50):
     return avg_success, mean_peak_force, max_peak_force
 def get_next_force_threshold(current_threshold, mean_peak_force):
     """
-    Decrease the current force threshold by 20%, ensuring it doesn't go below 0.
+    Decrease the current force threshold by 0.05, ensuring it doesn't go below 0.
 
     :param current_threshold: The current force threshold.
     :param mean_peak_force: The mean peak force observed.
     :return: The next force threshold.
     """
-    return mean_peak_force*0.95
+    return max(0, current_threshold-0.05)
 
 
 def get_git_commit_hash(repo_path):
