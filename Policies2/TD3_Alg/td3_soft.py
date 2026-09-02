@@ -89,6 +89,7 @@ def train(threshold_pos=0.001,
           randomise_ligs=False,
           randomise_start=False,
           randomise_num_springs=False,
+          randomise_foot_dynamics=False,
           log=True,
           seed=0):
     render_mode = render_mode
@@ -162,6 +163,7 @@ def train(threshold_pos=0.001,
         'randomise_ligs':randomise_ligs,
         'randomise_num_springs':randomise_num_springs,
         'randomise_start':randomise_start,
+        'randomise_foot_dynamics':randomise_foot_dynamics,
         'render_mode': render_mode}
         #"0.025 -0.04 0" rpy="0 1.57 0"
    
@@ -211,6 +213,7 @@ def train(threshold_pos=0.001,
                     'randomise_start':randomise_start,
                     'randomise_ligs':randomise_ligs,
                     'randomise_num_springs': randomise_num_springs,
+                    'randomise_foot_dynamics': randomise_foot_dynamics,
                     'render_mode': 'direct'}
     
     eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
@@ -517,6 +520,7 @@ if __name__ == "__main__":
     parser.add_argument('--randomise_ligs', type=int, default=0, help='Whether to randomise ligaments for the environment.')
     parser.add_argument('--randomise_start', type=int, default=0, help='Whether to randomise the starting position for the environment.')
     parser.add_argument('--randomise_num_springs', type=int, default=0, help='Whether to randomise the number of springs for the environment.')
+    parser.add_argument('--randomise_foot_dynamics', type=int, default=0, help='Whether to randomise the foot dynamics for the environment.')
     parser.add_argument('--ran', type=str, default="1", help='Random seed for the run.')
     parser.add_argument('--log', type=int, default=0, help='Whether to log the training run to W&B.')
     parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducibility.')
@@ -537,4 +541,5 @@ if __name__ == "__main__":
           randomise_ligs=args.randomise_ligs,
           randomise_start=args.randomise_start,
           randomise_num_springs=args.randomise_num_springs,
+          randomise_foot_dynamics=args.randomise_foot_dynamics,
           seed=args.seed)
