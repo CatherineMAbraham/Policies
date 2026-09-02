@@ -30,6 +30,6 @@ python td3_soft.py \
                 --randomise_foot_dynamics 1\
                 --randomise_num_springs 0 \
                 --contact_type 1 \
-                --seed $SEED \
-                --ran $TASK_ID
+                --seed 1 \
+                --ran 1
 
