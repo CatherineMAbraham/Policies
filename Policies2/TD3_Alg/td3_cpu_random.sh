@@ -9,7 +9,7 @@
 
 
 PYTHON_EXEC="/users/cop21cma/.conda/envs/softsurg9/bin/python"
-#source activate softsurg
+source activate softsurg
 # Read the correct line from params_curr_compare.csv
 TASK_ID=${SLURM_ARRAY_TASK_ID:-1}
 #PARAM_LINE=$(sed -n "${TASK_ID}p" tests_params.csv)
