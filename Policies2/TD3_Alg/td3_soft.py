@@ -90,6 +90,7 @@ def train(threshold_pos=0.001,
           randomise_start=False,
           randomise_num_springs=False,
           randomise_foot_dynamics=False,
+          randomise_sensor_noise=False,
           log=True,
           seed=0):
     render_mode = render_mode
@@ -164,6 +165,7 @@ def train(threshold_pos=0.001,
         'randomise_num_springs':randomise_num_springs,
         'randomise_start':randomise_start,
         'randomise_foot_dynamics':randomise_foot_dynamics,
+        'randomise_sensor_noise':randomise_sensor_noise,
         'render_mode': render_mode}
         #"0.025 -0.04 0" rpy="0 1.57 0"
    
@@ -214,6 +216,7 @@ def train(threshold_pos=0.001,
                     'randomise_ligs':randomise_ligs,
                     'randomise_num_springs': randomise_num_springs,
                     'randomise_foot_dynamics': randomise_foot_dynamics,
+                    'randomise_sensor_noise':randomise_sensor_noise,
                     'render_mode': 'direct'}
     
     eval_env=make_vec_env('gym_fracture:anklesurg-v2', n_envs=1, env_kwargs=eval_env_kwargs, vec_env_cls=SubprocVecEnv, seed = eval_seed)
@@ -235,253 +238,253 @@ def train(threshold_pos=0.001,
         callback = [eval_callback, log_callback1]
     else:
         callback = [eval_callback]
-    model.learn(1_000_000, callback=callback)
+    model.learn(2_000_000, callback=callback)
     # #save model name in log file
     # with open('./logs/model_log.txt', 'w') as f:
     #     f.write(f'{model_name}\n')
     # model.save(f'./models/{model_name}')
     # model.save_replay_buffer(f'./models/{model_name}-rb')
-    vtk_file = 'rect0009.vtk'
-    soft_eval_env_kwargs = {
-                'reward_type': 'sparse',
-                'max_steps': 100,
-                'horizon': 'variable',
-                'obs_type': 'dict',
-                'distance_threshold_pos': threshold_pos,
-                'dt': 0.001,
-                'dr':0.01,
-                'distance_threshold_ori': threshold_ori,
-                'maximum_contact_force_threshold':max_contact_force_threshold,
-                'softtissue': 'soft',
-                'number_of_springs': num_springs,
-                'youngs_modulus': 1.5e6,
-                'youngs_modulus_type': youngs_modulus_type,
-                'vtk_file': vtk_file,
-                'patient': 110,
-                'action_type': 'euler',
-                'maxforce': maxforce,
-                'contact_type' : contact_type,
-                'start_pos' : 'home',
-                'render_mode': 'direct',
-                'test': True,}
-    #ran = 18
-    #model_name = 'model-spring_0_testing-7'
-    #ran = 1
-    #model_name = 'model-spring_randomYM_08161518_1'#'model-spring_contact_08162136_1'
-    soft_eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=10, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
-    stats_path = f'./best_models/{ran}/{model_name}/vec_normalize.pkl'
-    soft_eval_env = VecNormalize.load(stats_path, soft_eval_env)
+    # vtk_file = 'rect0009.vtk'
+    # soft_eval_env_kwargs = {
+    #             'reward_type': 'sparse',
+    #             'max_steps': 100,
+    #             'horizon': 'variable',
+    #             'obs_type': 'dict',
+    #             'distance_threshold_pos': threshold_pos,
+    #             'dt': 0.001,
+    #             'dr':0.01,
+    #             'distance_threshold_ori': threshold_ori,
+    #             'maximum_contact_force_threshold':max_contact_force_threshold,
+    #             'softtissue': 'soft',
+    #             'number_of_springs': num_springs,
+    #             'youngs_modulus': 1.5e6,
+    #             'youngs_modulus_type': youngs_modulus_type,
+    #             'vtk_file': vtk_file,
+    #             'patient': 110,
+    #             'action_type': 'euler',
+    #             'maxforce': maxforce,
+    #             'contact_type' : contact_type,
+    #             'start_pos' : 'home',
+    #             'render_mode': 'direct',
+    #             'test': True,}
+    # #ran = 18
+    # #model_name = 'model-spring_0_testing-7'
+    # #ran = 1
+    # #model_name = 'model-spring_randomYM_08161518_1'#'model-spring_contact_08162136_1'
+    # soft_eval_env = make_vec_env('gym_fracture:anklesurg-v2', n_envs=10, env_kwargs=soft_eval_env_kwargs,vec_env_cls=SubprocVecEnv, seed=eval_seed)
+    # stats_path = f'./best_models/{ran}/{model_name}/vec_normalize.pkl'
+    # soft_eval_env = VecNormalize.load(stats_path, soft_eval_env)
 
-    #soft_eval_env.obs_rms = env.obs_rms  # Direct reference copy of the running means
-    soft_eval_env.training = False       # FREEZE STATS: Essential so eval steps don't corrupt them
-    soft_eval_env.norm_reward = False
+    # #soft_eval_env.obs_rms = env.obs_rms  # Direct reference copy of the running means
+    # soft_eval_env.training = False       # FREEZE STATS: Essential so eval steps don't corrupt them
+    # soft_eval_env.norm_reward = False
 
-    # 4. Create an identical, blank TD3 architecture hooked up to the new environment
-    #eval_model = TD3(**td3_kwargs, env=soft_eval_env, action_noise=action_noise)
-    model_path = f'./best_models/{ran}/{model_name}/{model_name}'
-    eval_model = TD3.load(model_path, env=soft_eval_env)#, action_noise=action_noise)
+    # # 4. Create an identical, blank TD3 architecture hooked up to the new environment
+    # #eval_model = TD3(**td3_kwargs, env=soft_eval_env, action_noise=action_noise)
+    # model_path = f'./best_models/{ran}/{model_name}/{model_name}'
+    # eval_model = TD3.load(model_path, env=soft_eval_env)#, action_noise=action_noise)
 
 
 
-    dones = []
-    contacts = []
-    explosions = []
-    num = 1000
-    episodes_collected = 0
-    obs = soft_eval_env.reset()
+    # dones = []
+    # contacts = []
+    # explosions = []
+    # num = 1000
+    # episodes_collected = 0
+    # obs = soft_eval_env.reset()
 
-    # Step-level logs
-    all_step_contact_forces = []    
-    all_step_agent_forces = []      
-    all_active_contact_forces = []  
+    # # Step-level logs
+    # all_step_contact_forces = []    
+    # all_step_agent_forces = []      
+    # all_active_contact_forces = []  
 
-    # --- 1. OVERALL BUFFERS (EXPLODED + NON-EXPLODED) ---
-    overall_succ_with_contact_forces = []    
-    overall_succ_without_contact_forces = [] 
-    overall_fail_with_contact_forces = []    
-    overall_fail_without_contact_forces = [] 
+    # # --- 1. OVERALL BUFFERS (EXPLODED + NON-EXPLODED) ---
+    # overall_succ_with_contact_forces = []    
+    # overall_succ_without_contact_forces = [] 
+    # overall_fail_with_contact_forces = []    
+    # overall_fail_without_contact_forces = [] 
 
-    overall_succ_with_contact_agent_forces = []
-    overall_succ_without_contact_agent_forces = []
-    overall_fail_with_contact_agent_forces = []
-    overall_fail_without_contact_agent_forces = []
+    # overall_succ_with_contact_agent_forces = []
+    # overall_succ_without_contact_agent_forces = []
+    # overall_fail_with_contact_agent_forces = []
+    # overall_fail_without_contact_agent_forces = []
 
-    # --- 2. CLEAN BUFFERS (NON-EXPLODED ONLY) ---
-    clean_succ_with_contact_forces = []    
-    clean_succ_without_contact_forces = [] 
-    clean_fail_with_contact_forces = []    
-    clean_fail_without_contact_forces = [] 
+    # # --- 2. CLEAN BUFFERS (NON-EXPLODED ONLY) ---
+    # clean_succ_with_contact_forces = []    
+    # clean_succ_without_contact_forces = [] 
+    # clean_fail_with_contact_forces = []    
+    # clean_fail_without_contact_forces = [] 
 
-    clean_succ_with_contact_agent_forces = []
-    clean_succ_without_contact_agent_forces = []
-    clean_fail_with_contact_agent_forces = []
-    clean_fail_without_contact_agent_forces = []
+    # clean_succ_with_contact_agent_forces = []
+    # clean_succ_without_contact_agent_forces = []
+    # clean_fail_with_contact_agent_forces = []
+    # clean_fail_without_contact_agent_forces = []
 
-    # --- 3. EXPLODED BUFFERS ---
-    exp_succ_with_contact_forces = []
-    exp_succ_without_contact_forces = []
-    exp_fail_with_contact_forces = []
-    exp_fail_without_contact_forces = []
+    # # --- 3. EXPLODED BUFFERS ---
+    # exp_succ_with_contact_forces = []
+    # exp_succ_without_contact_forces = []
+    # exp_fail_with_contact_forces = []
+    # exp_fail_without_contact_forces = []
 
-    exp_succ_with_contact_agent_forces = []
-    exp_succ_without_contact_agent_forces = []
-    exp_fail_with_contact_agent_forces = []
-    exp_fail_without_contact_agent_forces = []
+    # exp_succ_with_contact_agent_forces = []
+    # exp_succ_without_contact_agent_forces = []
+    # exp_fail_with_contact_agent_forces = []
+    # exp_fail_without_contact_agent_forces = []
 
-    # --- PER-ENV STEP BUFFERS ---
-    env_step_contact_forces = [[] for _ in range(soft_eval_env.num_envs)]
-    env_step_agent_forces = [[] for _ in range(soft_eval_env.num_envs)]
+    # # --- PER-ENV STEP BUFFERS ---
+    # env_step_contact_forces = [[] for _ in range(soft_eval_env.num_envs)]
+    # env_step_agent_forces = [[] for _ in range(soft_eval_env.num_envs)]
 
-    while episodes_collected < num:
-        action, _ = eval_model.predict(obs, deterministic=True)
-        obs, reward, dones_array, info_list = soft_eval_env.step(action)
+    # while episodes_collected < num:
+    #     action, _ = eval_model.predict(obs, deterministic=True)
+    #     obs, reward, dones_array, info_list = soft_eval_env.step(action)
         
-        # 1. STEP-LEVEL TRACKING
-        for i in range(soft_eval_env.num_envs):
-            info = info_list[i]
+    #     # 1. STEP-LEVEL TRACKING
+    #     for i in range(soft_eval_env.num_envs):
+    #         info = info_list[i]
             
-            step_contact_force = info.get('contact_force', 0.0)
-            step_agent_force = info.get('force', 0.0)
+    #         step_contact_force = info.get('contact_force', 0.0)
+    #         step_agent_force = info.get('force', 0.0)
             
-            env_step_contact_forces[i].append(step_contact_force)
-            env_step_agent_forces[i].append(step_agent_force)
+    #         env_step_contact_forces[i].append(step_contact_force)
+    #         env_step_agent_forces[i].append(step_agent_force)
             
-            all_step_contact_forces.append(step_contact_force)
-            all_step_agent_forces.append(step_agent_force)
+    #         all_step_contact_forces.append(step_contact_force)
+    #         all_step_agent_forces.append(step_agent_force)
             
             
             
-            if log == 1:
-                wandb.log({
-                    'Contact Force at Step': step_contact_force,
-                    'Agent Applied Force at Step': step_agent_force
-                })
+    #         if log == 1:
+    #             wandb.log({
+    #                 'Contact Force at Step': step_contact_force,
+    #                 'Agent Applied Force at Step': step_agent_force
+    #             })
 
-        # 2. EPISODE TERMINATION & CATEGORIZATION
-        for i in range(soft_eval_env.num_envs):
-            if dones_array[i]:
-                info = info_list[i]
-                is_success = info.get("is_success", False)
-                has_contact = info.get("contact", False)
-                has_exploded = info.get("exploded", False)
+    #     # 2. EPISODE TERMINATION & CATEGORIZATION
+    #     for i in range(soft_eval_env.num_envs):
+    #         if dones_array[i]:
+    #             info = info_list[i]
+    #             is_success = info.get("is_success", False)
+    #             has_contact = info.get("contact", False)
+    #             has_exploded = info.get("exploded", False)
 
-                # Contact Forces
-                ep_c_forces = env_step_contact_forces[i]
-                ep_max_contact_force = max(ep_c_forces) if ep_c_forces else 0.0
-                ep_avg_contact_force = sum(ep_c_forces) / len(ep_c_forces) if ep_c_forces else 0.0
+    #             # Contact Forces
+    #             ep_c_forces = env_step_contact_forces[i]
+    #             ep_max_contact_force = max(ep_c_forces) if ep_c_forces else 0.0
+    #             ep_avg_contact_force = sum(ep_c_forces) / len(ep_c_forces) if ep_c_forces else 0.0
 
-                # Agent Forces
-                ep_a_forces = env_step_agent_forces[i]
-                ep_max_agent_force = max(ep_a_forces) if ep_a_forces else 0.0
-                ep_avg_agent_force = sum(ep_a_forces) / len(ep_a_forces) if ep_a_forces else 0.0
+    #             # Agent Forces
+    #             ep_a_forces = env_step_agent_forces[i]
+    #             ep_max_agent_force = max(ep_a_forces) if ep_a_forces else 0.0
+    #             ep_avg_agent_force = sum(ep_a_forces) / len(ep_a_forces) if ep_a_forces else 0.0
 
                                 
-                dones.append(is_success)
-                contacts.append(has_contact)
-                explosions.append(has_exploded)
+    #             dones.append(is_success)
+    #             contacts.append(has_contact)
+    #             explosions.append(has_exploded)
 
-                # --- POPULATE OVERALL BUFFERS (ALL EPISODES) ---
-                if is_success and has_contact:
-                    overall_succ_with_contact_forces.append(ep_max_contact_force)
-                    overall_succ_with_contact_agent_forces.append(ep_max_agent_force)
-                elif is_success and not has_contact:
-                    overall_succ_without_contact_forces.append(ep_max_contact_force)
-                    overall_succ_without_contact_agent_forces.append(ep_max_agent_force)
-                elif not is_success and has_contact:
-                    overall_fail_with_contact_forces.append(ep_max_contact_force)
-                    overall_fail_with_contact_agent_forces.append(ep_max_agent_force)
-                else:
-                    overall_fail_without_contact_forces.append(ep_max_contact_force)
-                    overall_fail_without_contact_agent_forces.append(ep_max_agent_force)
+    #             # --- POPULATE OVERALL BUFFERS (ALL EPISODES) ---
+    #             if is_success and has_contact:
+    #                 overall_succ_with_contact_forces.append(ep_max_contact_force)
+    #                 overall_succ_with_contact_agent_forces.append(ep_max_agent_force)
+    #             elif is_success and not has_contact:
+    #                 overall_succ_without_contact_forces.append(ep_max_contact_force)
+    #                 overall_succ_without_contact_agent_forces.append(ep_max_agent_force)
+    #             elif not is_success and has_contact:
+    #                 overall_fail_with_contact_forces.append(ep_max_contact_force)
+    #                 overall_fail_with_contact_agent_forces.append(ep_max_agent_force)
+    #             else:
+    #                 overall_fail_without_contact_forces.append(ep_max_contact_force)
+    #                 overall_fail_without_contact_agent_forces.append(ep_max_agent_force)
 
-                # --- POPULATE CLEAN VS EXPLODED BUFFERS ---
-                if has_exploded:
-                    if is_success and has_contact:
-                        exp_succ_with_contact_forces.append(ep_max_contact_force)
-                        exp_succ_with_contact_agent_forces.append(ep_max_agent_force)
-                    elif is_success and not has_contact:
-                        exp_succ_without_contact_forces.append(ep_max_contact_force)
-                        exp_succ_without_contact_agent_forces.append(ep_max_agent_force)
-                    elif not is_success and has_contact:
-                        exp_fail_with_contact_forces.append(ep_max_contact_force)
-                        exp_fail_with_contact_agent_forces.append(ep_max_agent_force)
-                    else:
-                        exp_fail_without_contact_forces.append(ep_max_contact_force)
-                        exp_fail_without_contact_agent_forces.append(ep_max_agent_force)
-                else:
-                    if is_success and has_contact:
-                        clean_succ_with_contact_forces.append(ep_max_contact_force)
-                        clean_succ_with_contact_agent_forces.append(ep_max_agent_force)
-                    elif is_success and not has_contact:
-                        clean_succ_without_contact_forces.append(ep_max_contact_force)
-                        clean_succ_without_contact_agent_forces.append(ep_max_agent_force)
-                    elif not is_success and has_contact:
-                        clean_fail_with_contact_forces.append(ep_max_contact_force)
-                        clean_fail_with_contact_agent_forces.append(ep_max_agent_force)
-                    else:
-                        clean_fail_without_contact_forces.append(ep_max_contact_force)
-                        clean_fail_without_contact_agent_forces.append(ep_max_agent_force)
+    #             # --- POPULATE CLEAN VS EXPLODED BUFFERS ---
+    #             if has_exploded:
+    #                 if is_success and has_contact:
+    #                     exp_succ_with_contact_forces.append(ep_max_contact_force)
+    #                     exp_succ_with_contact_agent_forces.append(ep_max_agent_force)
+    #                 elif is_success and not has_contact:
+    #                     exp_succ_without_contact_forces.append(ep_max_contact_force)
+    #                     exp_succ_without_contact_agent_forces.append(ep_max_agent_force)
+    #                 elif not is_success and has_contact:
+    #                     exp_fail_with_contact_forces.append(ep_max_contact_force)
+    #                     exp_fail_with_contact_agent_forces.append(ep_max_agent_force)
+    #                 else:
+    #                     exp_fail_without_contact_forces.append(ep_max_contact_force)
+    #                     exp_fail_without_contact_agent_forces.append(ep_max_agent_force)
+    #             else:
+    #                 if is_success and has_contact:
+    #                     clean_succ_with_contact_forces.append(ep_max_contact_force)
+    #                     clean_succ_with_contact_agent_forces.append(ep_max_agent_force)
+    #                 elif is_success and not has_contact:
+    #                     clean_succ_without_contact_forces.append(ep_max_contact_force)
+    #                     clean_succ_without_contact_agent_forces.append(ep_max_agent_force)
+    #                 elif not is_success and has_contact:
+    #                     clean_fail_with_contact_forces.append(ep_max_contact_force)
+    #                     clean_fail_with_contact_agent_forces.append(ep_max_agent_force)
+    #                 else:
+    #                     clean_fail_without_contact_forces.append(ep_max_contact_force)
+    #                     clean_fail_without_contact_agent_forces.append(ep_max_agent_force)
 
-                episodes_collected += 1
-                print(f"[{episodes_collected}/{num}] Env {i} | Success: {is_success} | Contact: {has_contact} | Exploded: {has_exploded} | "
-                        f"Max Contact Force: {ep_max_contact_force:.2f}N | Max Agent Force: {ep_max_agent_force:.2f}N")
+    #             episodes_collected += 1
+    #             print(f"[{episodes_collected}/{num}] Env {i} | Success: {is_success} | Contact: {has_contact} | Exploded: {has_exploded} | "
+    #                     f"Max Contact Force: {ep_max_contact_force:.2f}N | Max Agent Force: {ep_max_agent_force:.2f}N")
 
-                # Reset local step buffers
-                env_step_contact_forces[i] = []
-                env_step_agent_forces[i] = []
+    #             # Reset local step buffers
+    #             env_step_contact_forces[i] = []
+    #             env_step_agent_forces[i] = []
 
-                valid_dones = [d for d, e in zip(dones, explosions) if not e]
-                not_exploded_success_rate = (sum(valid_dones) / len(valid_dones)) if len(valid_dones) > 0 else 0.0
+    #             valid_dones = [d for d, e in zip(dones, explosions) if not e]
+    #             not_exploded_success_rate = (sum(valid_dones) / len(valid_dones)) if len(valid_dones) > 0 else 0.0
 
-                # 3. WANDB LOGGING & SUMMARY UPDATES
-                if log == 1:
-                    wandb.log({
-                        "Episode": episodes_collected,
-                        "Success": is_success,
-                        "Contact": has_contact,
-                        "Exploded": has_exploded,
-                        "Episode Max Contact Force": ep_max_contact_force,
-                        "Episode Avg Contact Force": ep_avg_contact_force,
-                        "Episode Max Agent Force": ep_max_agent_force,
-                        "Episode Avg Agent Force": ep_avg_agent_force,
-                        "Overall Success Rate": sum(dones) / len(dones),
-                        "Clean Success Rate": not_exploded_success_rate
-                    })
+    #             # 3. WANDB LOGGING & SUMMARY UPDATES
+    #             if log == 1:
+    #                 wandb.log({
+    #                     "Episode": episodes_collected,
+    #                     "Success": is_success,
+    #                     "Contact": has_contact,
+    #                     "Exploded": has_exploded,
+    #                     "Episode Max Contact Force": ep_max_contact_force,
+    #                     "Episode Avg Contact Force": ep_avg_contact_force,
+    #                     "Episode Max Agent Force": ep_max_agent_force,
+    #                     "Episode Avg Agent Force": ep_avg_agent_force,
+    #                     "Overall Success Rate": sum(dones) / len(dones),
+    #                     "Clean Success Rate": not_exploded_success_rate
+    #                 })
 
-                    # --- OVERALL COUNTS ---
-                    wandb.run.summary['Count Overall/Success With Contact'] = len(overall_succ_with_contact_forces)
-                    wandb.run.summary['Count Overall/Success Without Contact'] = len(overall_succ_without_contact_forces)
-                    wandb.run.summary['Count Overall/Fail With Contact'] = len(overall_fail_with_contact_forces)
-                    wandb.run.summary['Count Overall/Fail Without Contact'] = len(overall_fail_without_contact_forces)
+    #                 # --- OVERALL COUNTS ---
+    #                 wandb.run.summary['Count Overall/Success With Contact'] = len(overall_succ_with_contact_forces)
+    #                 wandb.run.summary['Count Overall/Success Without Contact'] = len(overall_succ_without_contact_forces)
+    #                 wandb.run.summary['Count Overall/Fail With Contact'] = len(overall_fail_with_contact_forces)
+    #                 wandb.run.summary['Count Overall/Fail Without Contact'] = len(overall_fail_without_contact_forces)
 
-                    # --- CLEAN COUNTS ---
-                    wandb.run.summary['Count Clean/Success With Contact'] = len(clean_succ_with_contact_forces)
-                    wandb.run.summary['Count Clean/Success Without Contact'] = len(clean_succ_without_contact_forces)
-                    wandb.run.summary['Count Clean/Fail With Contact'] = len(clean_fail_with_contact_forces)
-                    wandb.run.summary['Count Clean/Fail Without Contact'] = len(clean_fail_without_contact_forces)
+    #                 # --- CLEAN COUNTS ---
+    #                 wandb.run.summary['Count Clean/Success With Contact'] = len(clean_succ_with_contact_forces)
+    #                 wandb.run.summary['Count Clean/Success Without Contact'] = len(clean_succ_without_contact_forces)
+    #                 wandb.run.summary['Count Clean/Fail With Contact'] = len(clean_fail_with_contact_forces)
+    #                 wandb.run.summary['Count Clean/Fail Without Contact'] = len(clean_fail_without_contact_forces)
 
-                    # --- OVERALL CONTACT FORCES ---
-                    if overall_succ_with_contact_forces:
-                        wandb.run.summary['Contact Force Overall/Success With Contact (Avg Max)'] = sum(overall_succ_with_contact_forces) / len(overall_succ_with_contact_forces)
-                    if overall_succ_without_contact_forces:
-                        wandb.run.summary['Contact Force Overall/Success Without Contact (Avg Max)'] = sum(overall_succ_without_contact_forces) / len(overall_succ_without_contact_forces)
-                    if overall_fail_with_contact_forces:
-                        wandb.run.summary['Contact Force Overall/Fail With Contact (Avg Max)'] = sum(overall_fail_with_contact_forces) / len(overall_fail_with_contact_forces)
-                    if overall_fail_without_contact_forces:
-                        wandb.run.summary['Contact Force Overall/Fail Without Contact (Avg Max)'] = sum(overall_fail_without_contact_forces) / len(overall_fail_without_contact_forces)
+    #                 # --- OVERALL CONTACT FORCES ---
+    #                 if overall_succ_with_contact_forces:
+    #                     wandb.run.summary['Contact Force Overall/Success With Contact (Avg Max)'] = sum(overall_succ_with_contact_forces) / len(overall_succ_with_contact_forces)
+    #                 if overall_succ_without_contact_forces:
+    #                     wandb.run.summary['Contact Force Overall/Success Without Contact (Avg Max)'] = sum(overall_succ_without_contact_forces) / len(overall_succ_without_contact_forces)
+    #                 if overall_fail_with_contact_forces:
+    #                     wandb.run.summary['Contact Force Overall/Fail With Contact (Avg Max)'] = sum(overall_fail_with_contact_forces) / len(overall_fail_with_contact_forces)
+    #                 if overall_fail_without_contact_forces:
+    #                     wandb.run.summary['Contact Force Overall/Fail Without Contact (Avg Max)'] = sum(overall_fail_without_contact_forces) / len(overall_fail_without_contact_forces)
 
-                    # --- CLEAN CONTACT FORCES ---
-                    if clean_succ_with_contact_forces:
-                        wandb.run.summary['Contact Force Clean/Success With Contact (Avg Max)'] = sum(clean_succ_with_contact_forces) / len(clean_succ_with_contact_forces)
-                    if clean_succ_without_contact_forces:
-                        wandb.run.summary['Contact Force Clean/Success Without Contact (Avg Max)'] = sum(clean_succ_without_contact_forces) / len(clean_succ_without_contact_forces)
-                    if clean_fail_with_contact_forces:
-                        wandb.run.summary['Contact Force Clean/Fail With Contact (Avg Max)'] = sum(clean_fail_with_contact_forces) / len(clean_fail_with_contact_forces)
-                    if clean_fail_without_contact_forces:
-                        wandb.run.summary['Contact Force Clean/Fail Without Contact (Avg Max)'] = sum(clean_fail_without_contact_forces) / len(clean_fail_without_contact_forces)
+    #                 # --- CLEAN CONTACT FORCES ---
+    #                 if clean_succ_with_contact_forces:
+    #                     wandb.run.summary['Contact Force Clean/Success With Contact (Avg Max)'] = sum(clean_succ_with_contact_forces) / len(clean_succ_with_contact_forces)
+    #                 if clean_succ_without_contact_forces:
+    #                     wandb.run.summary['Contact Force Clean/Success Without Contact (Avg Max)'] = sum(clean_succ_without_contact_forces) / len(clean_succ_without_contact_forces)
+    #                 if clean_fail_with_contact_forces:
+    #                     wandb.run.summary['Contact Force Clean/Fail With Contact (Avg Max)'] = sum(clean_fail_with_contact_forces) / len(clean_fail_with_contact_forces)
+    #                 if clean_fail_without_contact_forces:
+    #                     wandb.run.summary['Contact Force Clean/Fail Without Contact (Avg Max)'] = sum(clean_fail_without_contact_forces) / len(clean_fail_without_contact_forces)
 
-                if episodes_collected >= num:
-                    break
+    #             if episodes_collected >= num:
+    #                 break
 
       
     # --- CLEANUP (Outside the while loop) ---
@@ -521,6 +524,7 @@ if __name__ == "__main__":
     parser.add_argument('--randomise_start', type=int, default=0, help='Whether to randomise the starting position for the environment.')
     parser.add_argument('--randomise_num_springs', type=int, default=0, help='Whether to randomise the number of springs for the environment.')
     parser.add_argument('--randomise_foot_dynamics', type=int, default=0, help='Whether to randomise the foot dynamics for the environment.')
+    parser.add_argument('--randomise_sensor_noise', type=int, default=0, help='Whether to randomise the sensor noise for the environment.')
     parser.add_argument('--ran', type=str, default="1", help='Random seed for the run.')
     parser.add_argument('--log', type=int, default=0, help='Whether to log the training run to W&B.')
     parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducibility.')
@@ -542,4 +546,5 @@ if __name__ == "__main__":
           randomise_start=args.randomise_start,
           randomise_num_springs=args.randomise_num_springs,
           randomise_foot_dynamics=args.randomise_foot_dynamics,
+            randomise_sensor_noise=args.randomise_sensor_noise,
           seed=args.seed)

@@ -28,6 +28,7 @@ python td3_soft.py \
                 --youngs_modulus_type testing \
                 --randomise_foot_dynamics 1\
                 --randomise_num_springs 0 \
+                --randomise_sensor_noise 1\
                 --contact_type 1 \
                 --seed 1 \
                 --log 1\
