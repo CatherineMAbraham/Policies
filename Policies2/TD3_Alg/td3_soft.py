@@ -16,7 +16,10 @@ import os
 import gc
 import shutil
 #repo_path = "/home/catherine/FractureGym/fracturesurgeryenv"
-repo_paths = ["/users/cop21cma/FracSoftGym/fracturesurgeryenv", "/home/catherine/FractureGym/fracturesurgeryenv",'/home/catherine/FractureSoftGym/fracturesurgeryenv/']
+repo_paths = ["/users/cop21cma/FracSoftGym/fracturesurgeryenv", 
+              "/home/catherine/FractureGym/fracturesurgeryenv",
+              '/home/catherineabraham/FractureSoftGym/fracturesurgeryenv']
+
 
 
 def int_or_none(value: str):
@@ -130,17 +133,17 @@ def train(threshold_pos=0.001,
     randomise_ligs = True if randomise_ligs == 1 else False
     randomise_start = True if randomise_start == 1 else False
     randomise_num_springs = True if randomise_num_springs == 1 else False
+    #randomise_foot_dynamics = True if randomise_foot_dynamics == 1 else False
     #print(youngs_modulus)  |
     #print(contact_type)
     #name = f'{softtissue}_{randomise_start}_{randomise_ligs}-{seed}'
     tags = [
     f"{contact_type}",
-    f"{max_contact_force_threshold}",
-    "contact",'newobs'
+    f"{max_contact_force_threshold}"
 ]
     model_name = f'model-{name}'
     if log==1:
-        wandb.init(project="Chapter3-Results-3",tags=tags, name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
+        wandb.init(project="Chapter3-Results-contact",tags=tags, name = (name),notes= (f"Git Commit: {commit}"),sync_tensorboard=True, save_code=True)  # Initialize W&B
     #print((f'{softtissue}-{train_date}-{num_springs}-{youngs_modulus}-{ran}'))
     env_kwargs = {
         'reward_type': 'sparse',
@@ -230,7 +233,7 @@ def train(threshold_pos=0.001,
                                                     success_threshold=1,  
                                                     min_evals=1, verbose=1, 
                                                     model_name = model_name,
-                                                    model_save_path=f'./best_models/{ran}')
+                                                    model_save_path=f'./contact/{ran}')
     eval_callback = EvalCallback(eval_env,  eval_freq=10000,
                                 deterministic=True, n_eval_episodes=50,
                                 callback_after_eval=success_callback)
@@ -238,7 +241,7 @@ def train(threshold_pos=0.001,
         callback = [eval_callback, log_callback1]
     else:
         callback = [eval_callback]
-    model.learn(2_000_000, callback=callback)
+    model.learn(1_500_000, callback=callback)
     # #save model name in log file
     # with open('./logs/model_log.txt', 'w') as f:
     #     f.write(f'{model_name}\n')
@@ -489,7 +492,7 @@ def train(threshold_pos=0.001,
       
     # --- CLEANUP (Outside the while loop) ---
     print("\nEvaluation complete. Cleaning up resources to save memory...")
-    soft_eval_env.close()
+    #soft_eval_env.close()
 
     # 2. Delete model and environment variables from Python memory, then force GC
     # del eval_model
