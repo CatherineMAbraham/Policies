@@ -1,9 +1,6 @@
 #!/bin/bash
 #SBATCH --mail-user=cmabraham1@sheffield.ac.uk
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --partition=gpu
-#SBATCH --gres=gpu:a100:1
-#SBATCH --qos=gpu
 #SBATCH --ntasks=1            # 4 agents total
 #SBATCH --cpus-per-task=5     # 4 CPUs per agent
 #SBATCH --mem=20G              # 8GB RAM per agent
