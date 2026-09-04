@@ -255,7 +255,7 @@ if __name__ == "__main__":
 
     if args.log == 1:
         model_name_clean = args.model_path.split("/")[-1].split(".")[0]
-        wandb.init(project="softsurg", name=f"Eval_{model_name_clean}")
+        wandb.init(project="validation", name=f"Eval_{model_name_clean}")
 
     patients = [252, 102, 132, 198]
     for patient in patients:
