@@ -27,6 +27,7 @@ def multiple_envs(
     num_eps=50,
     log=0,
     seed=42,
+    safemode=0,
     force_limit=0.5,
 ):
     # Construct env_kwargs dynamically from passed function parameters
@@ -55,6 +56,7 @@ def multiple_envs(
         "softtissue": softtissue,
         "patient": patient,
         "vtk_file": vtk_file,
+        'safe_mode': safemode,
         "test": True,
         "render_mode": "direct",
     }
@@ -241,6 +243,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate model across randomized patients")
     parser.add_argument("--model_path", type=str, required=False, help="Path to trained model folder")
     parser.add_argument("--maxforce", type=float, default=3.3, help="Max motor command force.")
+    parser.add_argument("--safemode", type=int, default=0, help="Enable safe mode (1) or not (0).")
     parser.add_argument("--youngs_modulus", type=float, default=1e7, help="Tissue Young's modulus.")
     parser.add_argument("--num_springs", type=int, default=3, help="Number of ligament springs.")
     parser.add_argument("--softtissue", type=str, default="spring", help="Soft Tissue Type.")
@@ -265,6 +268,7 @@ if __name__ == "__main__":
             threshold_pos=args.threshold_pos,
             threshold_ori=np.deg2rad(args.threshold_ori),
             maxforce=args.maxforce,
+            safemode=args.safemode,
             softtissue=args.softtissue,
             num_springs=args.num_springs,
             youngs_modulus=args.youngs_modulus,
