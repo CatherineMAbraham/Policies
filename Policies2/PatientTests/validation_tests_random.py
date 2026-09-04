@@ -18,7 +18,7 @@ def multiple_envs(
     patient=110,
     threshold_pos=0.0005,
     threshold_ori=0.00872665,  # np.deg2rad(0.5)
-    maxforce=3.3,
+    maxforce=5,
     softtissue="spring",
     num_springs=3,
     youngs_modulus=1e7,
