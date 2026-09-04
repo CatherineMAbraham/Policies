@@ -24,7 +24,7 @@ python td3_soft.py \
                 --youngs_modulus 5e5 \
                 --maximum_contact_force_threshold 0.5 \
                 --softtissue spring \
-                --render_mode 'human' \
+                --render_mode 'direct' \
                 --youngs_modulus_type testing \
                 --randomise_foot_dynamics 1\
                 --randomise_num_springs 1 \
