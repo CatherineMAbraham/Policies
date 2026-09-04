@@ -19,8 +19,8 @@ IFS=',' read -r CONTACTFORCE SEED <<< "$PARAM_LINE"
 #echo "Running test with: Contact=$CONTACT, Contact Force=$CONTACTFORCE, Seed=$SEED"
 #Run the script 
 srun --export=ALL $PYTHON_EXEC td3_soft.py \
-                --threshold_pos 0.0005 \
-                --threshold_ori 0.5 \
+                --threshold_pos 0.0002 \
+                --threshold_ori 0.2 \
                 --action_type euler \
                 --maxforce 5 \
                 --num_springs 3 \
