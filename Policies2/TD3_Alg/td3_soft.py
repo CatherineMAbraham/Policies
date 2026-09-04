@@ -139,7 +139,8 @@ def train(threshold_pos=0.001,
     #name = f'{softtissue}_{randomise_start}_{randomise_ligs}-{seed}'
     tags = [
     f"{contact_type}",
-    f"{max_contact_force_threshold}"
+    f"{max_contact_force_threshold}",
+    '2'
 ]
     model_name = f'model-{name}'
     if log==1:
@@ -241,7 +242,7 @@ def train(threshold_pos=0.001,
         callback = [eval_callback, log_callback1]
     else:
         callback = [eval_callback]
-    model.learn(1_500_000, callback=callback)
+    model.learn(2_500_000, callback=callback)
     # #save model name in log file
     # with open('./logs/model_log.txt', 'w') as f:
     #     f.write(f'{model_name}\n')
