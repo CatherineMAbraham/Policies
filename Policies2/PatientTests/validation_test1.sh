@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=1    # 4 CPUs per agent
 #SBATCH --mem=20G              # 8GB RAM per agent
 #SBATCH --array=1-20
-#SBATCH --time=10:00:00
+#SBATCH --time=5:00:00
 #SBATCH --output=out_%A_%a.out
 
 
@@ -24,4 +24,6 @@ srun --export=ALL $PYTHON_EXEC validation_tests_random.py \
                 --maxforce 5\
                 --safemode $SAFE\
                 --num_eps 1000\
+                --force_limit 0.3\
+                --randomise_start 1\
                 --seed $SEED \

@@ -135,10 +135,10 @@ def multiple_envs(
 
                 # Peak episode contact force (excluding initial step)
                 peak_ep_contact = (
-                    max(ep_contact_forces[i][1:]) if len(ep_contact_forces[i]) > 1 else 0.0
+                    max(ep_contact_forces[i][0:]) if len(ep_contact_forces[i]) > 1 else 0.0
                 )
 
-                is_breached = 1 if max_force_val > force_limit else 0
+                is_breached = 1 if peak_ep_contact > force_limit else 0
 
                 # Append metrics
                 dones.append(is_success)
@@ -249,6 +249,8 @@ if __name__ == "__main__":
     parser.add_argument("--maxforce", type=float, default=3.3, help="Max motor command force.")
     parser.add_argument("--safemode", type=int, default=0, help="Enable safe mode (1) or not (0).")
     parser.add_argument("--youngs_modulus", type=float, default=1e7, help="Tissue Young's modulus.")
+    parser.add_argument("--randomise_start", type=int, default=1, help="Randomize start position (1) or not (0).")
+    parser.add_argument('--force_limit', type=float, default=0.4, help='Force limit for violation detection (N)')
     parser.add_argument("--num_springs", type=int, default=3, help="Number of ligament springs.")
     parser.add_argument("--softtissue", type=str, default="spring", help="Soft Tissue Type.")
     parser.add_argument("--vtk_file", type=str, default="rect0009.vtk", help="VTK geometry file")
@@ -262,7 +264,16 @@ if __name__ == "__main__":
 
     if args.log == 1:
         model_name_clean = args.model_path.split("/")[-1].split(".")[0]
-        wandb.init(project="validation", name=f"Eval_{model_name_clean}")
+        ##if model name has 'random' tag 'random'
+        if "random" in model_name_clean and args.safemode == 1:
+            tags = ['random', 'safe','2']
+        elif "random" in model_name_clean and args.safemode == 0:
+            tags = ['random', 'unsafe','2']
+        elif "random" not in model_name_clean and args.safemode == 1:
+            tags = ['baseline', 'safe','2']
+        else:
+            tags = ['baseline', 'unsafe','2']
+        wandb.init(project="validation", name=f"Eval_{model_name_clean}", tags=tags)
 
     patients = [ 102,198,252 ]
     for patient in patients:
@@ -276,6 +287,7 @@ if __name__ == "__main__":
             softtissue=args.softtissue,
             num_springs=args.num_springs,
             youngs_modulus=args.youngs_modulus,
+            randomise_start= args.randomise_start,
             vtk_file=args.vtk_file,
             n_envs=args.n_envs,
             num_eps=args.num_eps,
