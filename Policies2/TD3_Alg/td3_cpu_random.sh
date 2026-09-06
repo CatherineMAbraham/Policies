@@ -4,6 +4,9 @@
 #SBATCH --ntasks=1            # 4 agents total
 #SBATCH --cpus-per-task=5     # 4 CPUs per agent
 #SBATCH --mem=20G              # 8GB RAM per agent
+#SBATCH --partition=gpu
+#SBATCH --gres=gpu:a100:1
+#SBATCH --qos=gpu
 #SBATCH --array=1-5
 #SBATCH --time=25:00:00
 #SBATCH --output=out_%A_%a.out
@@ -31,7 +34,7 @@ srun --export=ALL $PYTHON_EXEC  td3_soft.py \
                 --randomise_sensor_noise 1\
                 --randomise_start 0\
                 --contact_type 1 \
-                --seed $SEED \
+                --seed $TASK_ID +10 \
                 --log 1\
                 --ran $TASK_ID \
 
