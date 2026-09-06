@@ -25,5 +25,5 @@ srun --export=ALL $PYTHON_EXEC validation_tests_random.py \
                 --safemode $SAFE\
                 --num_eps 1000\
                 --force_limit 0.3\
-                --randomise_start 1\
+                --randomise_start 0\
                 --seed $SEED \
