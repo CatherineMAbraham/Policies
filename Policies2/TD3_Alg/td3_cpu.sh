@@ -28,11 +28,11 @@ srun --export=ALL $PYTHON_EXEC td3_soft.py \
                 --maxforce 5 \
                 --num_springs 3 \
                 --youngs_modulus 5e5 \
-                --maximum_contact_force_threshold $CONTACTFORCE \
+                --maximum_contact_force_threshold 0.4 \
                 --softtissue spring \
                 --render_mode 'direct' \
                 --youngs_modulus_type None \
                 --log 1 \
-                --contact_type $CONTACTTYPE \
-                --seed $SEED \
+                --contact_type 1 \
+                --seed $((TASK_ID + 10)) \
                 --ran $TASK_ID \
