@@ -34,7 +34,7 @@ srun --export=ALL $PYTHON_EXEC  td3_soft.py \
                 --randomise_sensor_noise 1\
                 --randomise_start 0\
                 --contact_type 1 \
-                --seed $TASK_ID +10 \
+                --seed $((TASK_ID + 10)) \
                 --log 1\
                 --ran $TASK_ID \
 
