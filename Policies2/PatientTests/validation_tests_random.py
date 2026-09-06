@@ -24,7 +24,7 @@ def multiple_envs(
     youngs_modulus=1e7,
     vtk_file="rect0009.vtk",
     n_envs=1,
-    num_eps=50,
+    num_eps=1000,
     log=0,
     seed=42,
     safemode=0,
