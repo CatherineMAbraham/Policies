@@ -23,6 +23,7 @@ def multiple_envs(
     num_springs=3,
     youngs_modulus=1e7,
     vtk_file="rect0009.vtk",
+    randomise_start=0,
     n_envs=1,
     num_eps=1000,
     log=0,
@@ -56,7 +57,7 @@ def multiple_envs(
         "randomise_num_springs": 1,
         "randomise_foot_dynamics": 1,
         "randomise_sensor_noise": 1,
-        "randomise_start": 0,
+        "randomise_start": randomise_start,
         "softtissue": softtissue,
         "patient": patient,
         "vtk_file": vtk_file,
@@ -275,7 +276,7 @@ if __name__ == "__main__":
             tags = ['baseline', 'unsafe','2']
         wandb.init(project="validation", name=f"Eval_{model_name_clean}", tags=tags)
 
-    patients = [ 102,198,252 ]
+    patients = [ 198,102,252 ]
     for patient in patients:
         multiple_envs(
             model_path=args.model_path,
