@@ -28,9 +28,13 @@ def multiple_envs(
     log=0,
     seed=42,
     safemode=0,
-    force_limit=0.5,
+    force_limit=0.4,
 ):
     # Construct env_kwargs dynamically from passed function parameters
+    if safemode == 1:
+        safemode = True
+    else:
+        safemode = False
     goal_type = [0, 0, 0]
     env_kwargs = {
         "reward_type": "sparse",
@@ -52,7 +56,7 @@ def multiple_envs(
         "randomise_num_springs": 1,
         "randomise_foot_dynamics": 1,
         "randomise_sensor_noise": 1,
-        "randomise_start": 1,
+        "randomise_start": 0,
         "softtissue": softtissue,
         "patient": patient,
         "vtk_file": vtk_file,
@@ -159,10 +163,10 @@ def multiple_envs(
                 )
 
                 # Save raw step contact forces for detailed plotting
-                np.save(
-                    f"ep_contact_forces_patient{patient}_ep{episodes_collected}.npy",
-                    np.array(ep_contact_forces[i]),
-                )
+                # np.save(
+                #     f"ep_contact_forces_patient{patient}_ep{episodes_collected}.npy",
+                #     np.array(ep_contact_forces[i]),
+                # )
 
                 # Log episode to WandB
                 if log == 1 and max_force_val <= 50:
@@ -241,7 +245,7 @@ def multiple_envs(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate model across randomized patients")
-    parser.add_argument("--model_path", type=str, required=False, help="Path to trained model folder")
+    parser.add_argument("--model_path", type=str, required=False, default='/media/catherine/Data/Best Models 30926/model-spring_randomYM_09031956_1', help="Path to trained model folder")
     parser.add_argument("--maxforce", type=float, default=3.3, help="Max motor command force.")
     parser.add_argument("--safemode", type=int, default=0, help="Enable safe mode (1) or not (0).")
     parser.add_argument("--youngs_modulus", type=float, default=1e7, help="Tissue Young's modulus.")
@@ -260,7 +264,7 @@ if __name__ == "__main__":
         model_name_clean = args.model_path.split("/")[-1].split(".")[0]
         wandb.init(project="validation", name=f"Eval_{model_name_clean}")
 
-    patients = [252, 102, 132, 198]
+    patients = [ 102,198,252 ]
     for patient in patients:
         multiple_envs(
             model_path=args.model_path,
