@@ -23,4 +23,5 @@ srun --export=ALL $PYTHON_EXEC validation_tests_random.py \
                 --log 1\
                 --maxforce 5\
                 --safemode $SAFE\
+                --num_eps 1000\
                 --seed $SEED \
