@@ -7,7 +7,7 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
 #SBATCH --qos=gpu
-#SBATCH --array=1-10
+#SBATCH --array=1-5
 #SBATCH --time=25:00:00
 #SBATCH --output=out_%A_%a.out
 
