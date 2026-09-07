@@ -32,6 +32,8 @@ def multiple_envs(
     force_limit=0.4,
 ):
     # Construct env_kwargs dynamically from passed function parameters
+    threshold_ori = np.deg2rad(0.5)  # Convert degrees to radians for internal use
+    threshold_pos = 0.0005  # Position threshold in meters
     if safemode == 1:
         safemode = True
     else:
@@ -139,7 +141,7 @@ def multiple_envs(
                     max(ep_contact_forces[i][0:]) if len(ep_contact_forces[i]) > 1 else 0.0
                 )
 
-                is_breached = 1 if peak_ep_contact > force_limit else 0
+                is_breached = 1 if max_force_val > maxforce else 0
 
                 # Append metrics
                 dones.append(is_success)
@@ -267,16 +269,16 @@ if __name__ == "__main__":
         model_name_clean = args.model_path.split("/")[-1].split(".")[0]
         ##if model name has 'random' tag 'random'
         if "random" in model_name_clean and args.safemode == 1:
-            tags = ['random', 'safe','2']
+            tags = ['random', 'safe','3']
         elif "random" in model_name_clean and args.safemode == 0:
-            tags = ['random', 'unsafe','2']
+            tags = ['random', 'unsafe','3']
         elif "random" not in model_name_clean and args.safemode == 1:
-            tags = ['baseline', 'safe','2']
+            tags = ['baseline', 'safe','3']
         else:
-            tags = ['baseline', 'unsafe','2']
+            tags = ['baseline', 'unsafe','3']
         wandb.init(project="validation", name=f"Eval_{model_name_clean}", tags=tags)
 
-    patients = [ 198,102,252 ]
+    patients = [ 132,102,252,198 ]
     for patient in patients:
         multiple_envs(
             model_path=args.model_path,

@@ -22,8 +22,8 @@ srun --export=ALL $PYTHON_EXEC validation_tests_random.py \
                 --model_path $MODEL \
                 --log 1\
                 --maxforce 5\
-                --safemode $SAFE\
+                --safemode 1\
                 --num_eps 1000\
-                --force_limit 0.3\
-                --randomise_start 0\
+                --force_limit 0.4\
+                --randomise_start 1\
                 --seed $SEED \
