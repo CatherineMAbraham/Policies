@@ -16,7 +16,7 @@ PYTHON_EXEC="/users/cop21cma/.conda/envs/softsurg9/bin/python"
 TASK_ID=${SLURM_ARRAY_TASK_ID:-1}
 #PARAM_LINE=$(sed -n "${TASK_ID}p" tests_params.csv)
 PARAM_LINE=$(sed -n "${TASK_ID}p" tests.csv)
-IFS=',' read -r MODEL SAFE SEED<<< "$PARAM_LINE"
+IFS=',' read -r MODEL SEED<<< "$PARAM_LINE"
 
 srun --export=ALL $PYTHON_EXEC validation_tests_random.py \
                 --model_path $MODEL \
