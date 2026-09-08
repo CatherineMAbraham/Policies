@@ -278,7 +278,7 @@ if __name__ == "__main__":
             tags = ['baseline', 'unsafe','3']
         wandb.init(project="validation", name=f"Eval_{model_name_clean}", tags=tags)
 
-    patients = [ 132,102,252,198 ]
+    patients = [198]
     for patient in patients:
         multiple_envs(
             model_path=args.model_path,
