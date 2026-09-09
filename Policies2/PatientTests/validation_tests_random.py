@@ -1,98 +1,28 @@
 import argparse
 import os
 from pathlib import Path
+import pickle
 
 import gymnasium as gym
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pybullet as p
 import pybullet_data
-import pickle
 from stable_baselines3 import TD3
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize
 import wandb
 
-
-# def plot_sample_trajectories(
-#     sample_episodes: list,
-#     patient: int,
-#     output_dir: str = "./patient_trajectory_plots",
-#     log_wandb: bool = False,
-# ):
-#     """Plot multi-panel trajectory comparisons (Best, Median, Worst) for paper evaluation."""
-#     os.makedirs(output_dir, exist_ok=True)
-#     sns.set_theme(style="whitegrid", font_scale=1.0)
-
-#     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-#     fig.suptitle(
-#         f"Patient {patient} — Representative Trajectories (Best, Median, Worst)",
-#         fontsize=16,
-#         fontweight="bold",
-#     )
-
-#     for ep in sample_episodes:
-#         steps = range(len(ep["agent_forces"]))
-#         suffix = ep.get("label_suffix", "")
-#         status = "Success" if ep["is_success"] else "Fail"
-#         label = f"Ep {ep['episode_id']}{suffix} ({status})"
-
-#         # 1. Position Error (mm)
-#         axes[0, 0].plot(steps, [p_val * 1000.0 for p_val in ep["pos_dists"]], label=label, linewidth=1.8)
-
-#         # 2. Angle Error (deg)
-#         axes[0, 1].plot(steps, [np.rad2deg(a_val) for a_val in ep["angle_dists"]], label=label, linewidth=1.8)
-
-#         # 3. Agent & Contact Forces (N)
-#         axes[1, 0].plot(steps, ep["agent_forces"], label=f"{label} Agent", linewidth=1.8)
-#         axes[1, 0].plot(steps, ep["contact_forces"], linestyle="--", alpha=0.6, label=f"{label} Contact")
-
-#         # 4. 2D Spatial Path (X-Y Plane in mm)
-#         if ep["positions"] and len(ep["positions"][0]) >= 2:
-#             pos_arr = np.array(ep["positions"]) * 1000.0  # m -> mm
-#             axes[1, 1].plot(pos_arr[:, 0], pos_arr[:, 1], marker="o", markersize=3, label=label, linewidth=1.5)
-
-#     # Panel Formatting & Limits
-#     axes[0, 0].axhline(0.5, color="red", linestyle="--", alpha=0.7, label="Target Limit (0.5 mm)")
-#     axes[0, 0].set_title("Position Error over Time")
-#     axes[0, 0].set_ylabel("Error (mm)")
-#     axes[0, 0].set_xlabel("Step")
-#     axes[0, 0].legend(loc="upper right", fontsize=8)
-
-#     axes[0, 1].axhline(0.5, color="red", linestyle="--", alpha=0.7, label="Target Limit (0.5°)")
-#     axes[0, 1].set_title("Angle Error over Time")
-#     axes[0, 1].set_ylabel("Error (°)")
-#     axes[0, 1].set_xlabel("Step")
-#     axes[0, 1].legend(loc="upper right", fontsize=8)
-
-#     axes[1, 0].axhline(0.4, color="red", linestyle="--", alpha=0.7, label="Force Limit (0.4 N)")
-#     axes[1, 0].set_title("Force Profile over Time")
-#     axes[1, 0].set_ylabel("Force (N)")
-#     axes[1, 0].set_xlabel("Step")
-#     axes[1, 0].legend(loc="upper right", fontsize=8)
-
-#     axes[1, 1].set_title("2D Spatial Path (X-Y Plane)")
-#     axes[1, 1].set_xlabel("X Position (mm)")
-#     axes[1, 1].set_ylabel("Y Position (mm)")
-#     axes[1, 1].legend(loc="upper right", fontsize=8)
-
-#     plt.tight_layout()
-#     plot_path = os.path.join(output_dir, f"patient_{patient}_representative_trajectories.png")
-#     plt.savefig(plot_path, dpi=300)
-
-#     if log_wandb and wandb.run is not None:
-#         wandb.log({f"Plots/Patient_{patient}_Trajectories": wandb.Image(plot_path)})
-
-#     plt.close()
-#     print(f"Saved representative trajectory plot: {plot_path}")
+# Prevent WandB HTTP 503 / timeout network crashes
+os.environ["WANDB_HTTP_TIMEOUT"] = "60"
+os.environ["WANDB_INIT_TIMEOUT"] = "300"
 
 
 def multiple_envs(
     model_path,
     patient=110,
     threshold_pos=0.0005,
-    threshold_ori=0.00872665,  # np.deg2rad(0.5)
+    threshold_ori=0.00872665,
     maxforce=5,
     softtissue="spring",
     num_springs=3,
@@ -101,6 +31,7 @@ def multiple_envs(
     randomise_start=0,
     n_envs=1,
     num_eps=1000,
+    top_k=10,
     log=0,
     seed=42,
     safemode=0,
@@ -189,8 +120,8 @@ def multiple_envs(
     ep_orientations = [[] for _ in range(env.num_envs)]
     ep_step_counters = [0 for _ in range(env.num_envs)]
 
-    # Storage for percentile sampling
-    all_episodes_data = []
+    # Storage for top-performing trajectories only
+    top_episodes_data = []
     episodes_collected = 0
 
     obs = env.reset()
@@ -248,9 +179,10 @@ def multiple_envs(
                 contact_breached.append(1 if peak_ep_contact > force_limit else 0)
                 episodes_collected += 1
 
-                # Save episode step trajectory for percentile sorting
-                all_episodes_data.append({
+                # Maintain bounded buffer of top K best episodes (lowest final position error)
+                ep_summary = {
                     "episode_id": episodes_collected,
+                    "patient_id": patient,
                     "is_success": is_success,
                     "pos_dists": list(ep_pos_dists[i]),
                     "angle_dists": list(ep_angle_dists[i]),
@@ -258,54 +190,23 @@ def multiple_envs(
                     "contact_forces": list(ep_contact_forces[i]),
                     "positions": list(ep_positions[i]),
                     "final_pos_error": pos_dist,
-                })
+                }
+                top_episodes_data.append(ep_summary)
+                top_episodes_data.sort(key=lambda x: x["final_pos_error"])
+                if len(top_episodes_data) > top_k:
+                    top_episodes_data.pop()
 
                 print(
                     f"[{episodes_collected}/{num_eps}] Patient {patient} | Env {i} "
                     f"Success: {is_success} | Peak Force: {max_force_val:.3f}N | "
-                    f"Peak Contact: {peak_ep_contact:.3f}N  "
+                    f"Peak Contact: {peak_ep_contact:.3f}N | "
                     f"Interlocks: {interlocks} | Steps: {steps_taken} | "
                     f"Pos Err: {pos_dist:.5f}m | Angle Err: {np.rad2deg(angle_dist):.2f}° | "
                     f"Success Rate: {sum(dones) / len(dones):.2%}"
                 )
 
-                # Log step table to WandB
-                if log == 1 and max_force_val <= 50:
-                    traj_cols = [
-                        "Step",
-                        "Position_Distance_m",
-                        "Angle_Distance_rad",
-                        "Agent_Force_N",
-                        "Contact_Force_N",
-                    ]
-
-                    has_pos_vec = len(ep_positions[i]) == len(ep_agent_forces[i])
-                    has_rot_vec = len(ep_orientations[i]) == len(ep_agent_forces[i])
-
-                    if has_pos_vec:
-                        traj_cols.extend(["Pos_X", "Pos_Y", "Pos_Z"])
-                    if has_rot_vec:
-                        traj_cols.extend(["Rot_X", "Rot_Y", "Rot_Z"])
-
-                    traj_table = wandb.Table(columns=traj_cols)
-
-                    for step_idx in range(len(ep_agent_forces[i])):
-                        row = [
-                            step_idx,
-                            ep_pos_dists[i][step_idx],
-                            ep_angle_dists[i][step_idx],
-                            ep_agent_forces[i][step_idx],
-                            ep_contact_forces[i][step_idx],
-                        ]
-                        if has_pos_vec:
-                            p_val = ep_positions[i][step_idx]
-                            row.extend(p_val if hasattr(p_val, "__len__") else [p_val, 0, 0])
-                        if has_rot_vec:
-                            r_val = ep_orientations[i][step_idx]
-                            row.extend(r_val if hasattr(r_val, "__len__") else [r_val, 0, 0])
-
-                        traj_table.add_data(*row)
-
+                # Stream clean scalar metrics to WandB without table artifacts
+                if log == 1:
                     wandb.log(
                         {
                             "Patient_ID": patient,
@@ -321,7 +222,6 @@ def multiple_envs(
                             "Position_Distance": pos_dist,
                             "Angle_Distance": angle_dist,
                             "Success_Rate": sum(dones) / len(dones),
-                            f"Trajectories/Patient_{patient}_Ep_{episodes_collected}": traj_table,
                         }
                     )
 
@@ -337,16 +237,14 @@ def multiple_envs(
                 if episodes_collected >= num_eps:
                     break
 
-    # Percentile trajectory plot (Best, Median, Worst)
-    if all_episodes_data:
+    # Save top K trajectories to pickle
+    if top_episodes_data:
         save_dir = "./trajectory_data"
         os.makedirs(save_dir, exist_ok=True)
-        
-        save_path = os.path.join(save_dir, f"patient_{patient}_trajectories.pkl")
+        save_path = os.path.join(save_dir, f"patient_{patient}_top_{len(top_episodes_data)}_trajectories.pkl")
         with open(save_path, "wb") as f:
-            pickle.dump(all_episodes_data, f)
-            
-        print(f"Saved {len(all_episodes_data)} episode trajectories for Patient {patient} to {save_path}")
+            pickle.dump(top_episodes_data, f)
+        print(f"Saved top {len(top_episodes_data)} best trajectories for Patient {patient} to {save_path}")
 
     # Save summary CSV
     model_name = Path(model_path).name
@@ -368,7 +266,7 @@ def multiple_envs(
     csv_filename = f"eval_patient_{patient}_{model_name}.csv"
     df.to_csv(csv_filename, index=False)
 
-    # Print summary block
+    # Terminal summary block
     success_no_contact = sum(1 for d_val, c_val in zip(dones, contacts) if d_val and not c_val)
     failure_no_contact = sum(1 for d_val, c_val in zip(dones, contacts) if not d_val and not c_val)
     success_contact = sum(1 for d_val, c_val in zip(dones, contacts) if d_val and c_val)
@@ -403,7 +301,8 @@ def multiple_envs(
         wandb.run.summary[f"patient_{patient}_avg_agent_force"] = np.mean(agent_force)
         wandb.run.summary[f"patient_{patient}_avg_contact_force"] = np.mean(contact_forces)
         wandb.run.summary[f"patient_{patient}_avg_contact_violation_rate"] = np.mean(contact_breached)
-        wandb.run.summary[f"patient_{patient}_contact_violation"] = contact_breached
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate model across randomized patients")
     parser.add_argument(
@@ -425,25 +324,28 @@ if __name__ == "__main__":
     parser.add_argument("--threshold_ori", type=float, default=0.5, help="Angle error limit (deg)")
     parser.add_argument("--n_envs", type=int, default=1, help="Parallel environment count")
     parser.add_argument("--num_eps", type=int, default=1000, help="Episodes to evaluate per patient")
+    parser.add_argument("--top_k", type=int, default=10, help="Number of top trajectories to save per patient")
     parser.add_argument("--log", type=int, default=0, help="Log to Weights & Biases (0 or 1)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     args = parser.parse_args()
 
-    if args.log == 1:
-        model_name_clean = args.model_path.split("/")[-1].split(".")[0]
-        if "random" in model_name_clean and args.safemode == 1:
-            tags = ["random", "safe"]
-        elif "random" in model_name_clean and args.safemode == 0:
-            tags = ["random", "unsafe"]
-        elif "random" not in model_name_clean and args.safemode == 1:
-            tags = ["baseline", "safe"]
-        else:
-            tags = ["baseline", "unsafe"]
-
-        wandb.init(project="Validation-results", name=f"Eval_{model_name_clean}", tags=tags)
-
     patients = [198, 102, 132, 252]
+    model_name_clean = args.model_path.split("/")[-1].split(".")[0]
+
     for patient in patients:
+        if args.log == 1:
+            dr_tag = "random" if "random" in model_name_clean else "baseline"
+            safe_tag = "safe" if args.safemode == 1 else "unsafe"
+            patient_tag = f"p{patient}"
+            tags = [dr_tag, safe_tag, patient_tag, "3"]
+
+            wandb.init(
+                project="Validation-results-2",
+                name=f"Eval_{model_name_clean}_P{patient}",
+                tags=tags,
+                reinit=True,
+            )
+
         multiple_envs(
             model_path=args.model_path,
             patient=patient,
@@ -458,6 +360,11 @@ if __name__ == "__main__":
             vtk_file=args.vtk_file,
             n_envs=args.n_envs,
             num_eps=args.num_eps,
+            top_k=args.top_k,
             log=args.log,
             seed=args.seed,
+            force_limit=args.force_limit,
         )
+
+        if args.log == 1:
+            wandb.finish()
