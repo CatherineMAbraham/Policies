@@ -8,84 +8,84 @@ import numpy as np
 import pandas as pd
 import pybullet as p
 import pybullet_data
-import seaborn as sns
+import pickle
 from stable_baselines3 import TD3
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize
 import wandb
 
 
-def plot_sample_trajectories(
-    sample_episodes: list,
-    patient: int,
-    output_dir: str = "./patient_trajectory_plots",
-    log_wandb: bool = False,
-):
-    """Plot multi-panel trajectory comparisons (Best, Median, Worst) for paper evaluation."""
-    os.makedirs(output_dir, exist_ok=True)
-    sns.set_theme(style="whitegrid", font_scale=1.0)
+# def plot_sample_trajectories(
+#     sample_episodes: list,
+#     patient: int,
+#     output_dir: str = "./patient_trajectory_plots",
+#     log_wandb: bool = False,
+# ):
+#     """Plot multi-panel trajectory comparisons (Best, Median, Worst) for paper evaluation."""
+#     os.makedirs(output_dir, exist_ok=True)
+#     sns.set_theme(style="whitegrid", font_scale=1.0)
 
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-    fig.suptitle(
-        f"Patient {patient} — Representative Trajectories (Best, Median, Worst)",
-        fontsize=16,
-        fontweight="bold",
-    )
+#     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+#     fig.suptitle(
+#         f"Patient {patient} — Representative Trajectories (Best, Median, Worst)",
+#         fontsize=16,
+#         fontweight="bold",
+#     )
 
-    for ep in sample_episodes:
-        steps = range(len(ep["agent_forces"]))
-        suffix = ep.get("label_suffix", "")
-        status = "Success" if ep["is_success"] else "Fail"
-        label = f"Ep {ep['episode_id']}{suffix} ({status})"
+#     for ep in sample_episodes:
+#         steps = range(len(ep["agent_forces"]))
+#         suffix = ep.get("label_suffix", "")
+#         status = "Success" if ep["is_success"] else "Fail"
+#         label = f"Ep {ep['episode_id']}{suffix} ({status})"
 
-        # 1. Position Error (mm)
-        axes[0, 0].plot(steps, [p_val * 1000.0 for p_val in ep["pos_dists"]], label=label, linewidth=1.8)
+#         # 1. Position Error (mm)
+#         axes[0, 0].plot(steps, [p_val * 1000.0 for p_val in ep["pos_dists"]], label=label, linewidth=1.8)
 
-        # 2. Angle Error (deg)
-        axes[0, 1].plot(steps, [np.rad2deg(a_val) for a_val in ep["angle_dists"]], label=label, linewidth=1.8)
+#         # 2. Angle Error (deg)
+#         axes[0, 1].plot(steps, [np.rad2deg(a_val) for a_val in ep["angle_dists"]], label=label, linewidth=1.8)
 
-        # 3. Agent & Contact Forces (N)
-        axes[1, 0].plot(steps, ep["agent_forces"], label=f"{label} Agent", linewidth=1.8)
-        axes[1, 0].plot(steps, ep["contact_forces"], linestyle="--", alpha=0.6, label=f"{label} Contact")
+#         # 3. Agent & Contact Forces (N)
+#         axes[1, 0].plot(steps, ep["agent_forces"], label=f"{label} Agent", linewidth=1.8)
+#         axes[1, 0].plot(steps, ep["contact_forces"], linestyle="--", alpha=0.6, label=f"{label} Contact")
 
-        # 4. 2D Spatial Path (X-Y Plane in mm)
-        if ep["positions"] and len(ep["positions"][0]) >= 2:
-            pos_arr = np.array(ep["positions"]) * 1000.0  # m -> mm
-            axes[1, 1].plot(pos_arr[:, 0], pos_arr[:, 1], marker="o", markersize=3, label=label, linewidth=1.5)
+#         # 4. 2D Spatial Path (X-Y Plane in mm)
+#         if ep["positions"] and len(ep["positions"][0]) >= 2:
+#             pos_arr = np.array(ep["positions"]) * 1000.0  # m -> mm
+#             axes[1, 1].plot(pos_arr[:, 0], pos_arr[:, 1], marker="o", markersize=3, label=label, linewidth=1.5)
 
-    # Panel Formatting & Limits
-    axes[0, 0].axhline(0.5, color="red", linestyle="--", alpha=0.7, label="Target Limit (0.5 mm)")
-    axes[0, 0].set_title("Position Error over Time")
-    axes[0, 0].set_ylabel("Error (mm)")
-    axes[0, 0].set_xlabel("Step")
-    axes[0, 0].legend(loc="upper right", fontsize=8)
+#     # Panel Formatting & Limits
+#     axes[0, 0].axhline(0.5, color="red", linestyle="--", alpha=0.7, label="Target Limit (0.5 mm)")
+#     axes[0, 0].set_title("Position Error over Time")
+#     axes[0, 0].set_ylabel("Error (mm)")
+#     axes[0, 0].set_xlabel("Step")
+#     axes[0, 0].legend(loc="upper right", fontsize=8)
 
-    axes[0, 1].axhline(0.5, color="red", linestyle="--", alpha=0.7, label="Target Limit (0.5°)")
-    axes[0, 1].set_title("Angle Error over Time")
-    axes[0, 1].set_ylabel("Error (°)")
-    axes[0, 1].set_xlabel("Step")
-    axes[0, 1].legend(loc="upper right", fontsize=8)
+#     axes[0, 1].axhline(0.5, color="red", linestyle="--", alpha=0.7, label="Target Limit (0.5°)")
+#     axes[0, 1].set_title("Angle Error over Time")
+#     axes[0, 1].set_ylabel("Error (°)")
+#     axes[0, 1].set_xlabel("Step")
+#     axes[0, 1].legend(loc="upper right", fontsize=8)
 
-    axes[1, 0].axhline(0.4, color="red", linestyle="--", alpha=0.7, label="Force Limit (0.4 N)")
-    axes[1, 0].set_title("Force Profile over Time")
-    axes[1, 0].set_ylabel("Force (N)")
-    axes[1, 0].set_xlabel("Step")
-    axes[1, 0].legend(loc="upper right", fontsize=8)
+#     axes[1, 0].axhline(0.4, color="red", linestyle="--", alpha=0.7, label="Force Limit (0.4 N)")
+#     axes[1, 0].set_title("Force Profile over Time")
+#     axes[1, 0].set_ylabel("Force (N)")
+#     axes[1, 0].set_xlabel("Step")
+#     axes[1, 0].legend(loc="upper right", fontsize=8)
 
-    axes[1, 1].set_title("2D Spatial Path (X-Y Plane)")
-    axes[1, 1].set_xlabel("X Position (mm)")
-    axes[1, 1].set_ylabel("Y Position (mm)")
-    axes[1, 1].legend(loc="upper right", fontsize=8)
+#     axes[1, 1].set_title("2D Spatial Path (X-Y Plane)")
+#     axes[1, 1].set_xlabel("X Position (mm)")
+#     axes[1, 1].set_ylabel("Y Position (mm)")
+#     axes[1, 1].legend(loc="upper right", fontsize=8)
 
-    plt.tight_layout()
-    plot_path = os.path.join(output_dir, f"patient_{patient}_representative_trajectories.png")
-    plt.savefig(plot_path, dpi=300)
+#     plt.tight_layout()
+#     plot_path = os.path.join(output_dir, f"patient_{patient}_representative_trajectories.png")
+#     plt.savefig(plot_path, dpi=300)
 
-    if log_wandb and wandb.run is not None:
-        wandb.log({f"Plots/Patient_{patient}_Trajectories": wandb.Image(plot_path)})
+#     if log_wandb and wandb.run is not None:
+#         wandb.log({f"Plots/Patient_{patient}_Trajectories": wandb.Image(plot_path)})
 
-    plt.close()
-    print(f"Saved representative trajectory plot: {plot_path}")
+#     plt.close()
+#     print(f"Saved representative trajectory plot: {plot_path}")
 
 
 def multiple_envs(
@@ -339,22 +339,14 @@ def multiple_envs(
 
     # Percentile trajectory plot (Best, Median, Worst)
     if all_episodes_data:
-        all_episodes_data.sort(key=lambda x: x["final_pos_error"])
-
-        best_ep = all_episodes_data[0]
-        median_ep = all_episodes_data[len(all_episodes_data) // 2]
-        worst_ep = all_episodes_data[-1]
-
-        best_ep["label_suffix"] = " (Best)"
-        median_ep["label_suffix"] = " (Median)"
-        worst_ep["label_suffix"] = " (Worst)"
-
-        plot_sample_trajectories(
-            sample_episodes=[best_ep, median_ep, worst_ep],
-            patient=patient,
-            output_dir="./patient_trajectory_plots",
-            log_wandb=(log == 1),
-        )
+        save_dir = "./trajectory_data"
+        os.makedirs(save_dir, exist_ok=True)
+        
+        save_path = os.path.join(save_dir, f"patient_{patient}_trajectories.pkl")
+        with open(save_path, "wb") as f:
+            pickle.dump(all_episodes_data, f)
+            
+        print(f"Saved {len(all_episodes_data)} episode trajectories for Patient {patient} to {save_path}")
 
     # Save summary CSV
     model_name = Path(model_path).name
