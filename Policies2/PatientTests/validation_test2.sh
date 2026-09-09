@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=1    # 4 CPUs per agent
 #SBATCH --mem=20G              # 8GB RAM per agent
 #SBATCH --array=1-20
-#SBATCH --time=5:00:00
+#SBATCH --time=48:00:00
 #SBATCH --output=out_%A_%a.out
 
 
