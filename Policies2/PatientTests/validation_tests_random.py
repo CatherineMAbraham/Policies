@@ -337,7 +337,7 @@ if __name__ == "__main__":
             dr_tag = "random" if "random" in model_name_clean else "baseline"
             safe_tag = "safe" if args.safemode == 1 else "unsafe"
             patient_tag = f"p{patient}"
-            tags = [dr_tag, safe_tag, patient_tag, "3"]
+            tags = [dr_tag, safe_tag, patient_tag, "3",'new']
 
             wandb.init(
                 project="Validation-results-2",
