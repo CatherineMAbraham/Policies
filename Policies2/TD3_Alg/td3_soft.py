@@ -230,11 +230,11 @@ def train(threshold_pos=0.001,
     eval_env.training = False
     log_callback1 = log_callback.CustomCallback()
     success_callback = StopTrainingOnSuccessRate(vec_env=eval_env, 
-                                                    max_no_improvement_evals=10, 
-                                                    success_threshold=0.9,  
+                                                    max_no_improvement_evals=1, 
+                                                    success_threshold=1,  
                                                     min_evals=1, verbose=1, 
                                                     model_name = model_name,
-                                                    model_save_path=f'./random/{ran}')
+                                                    model_save_path=f'./contact/{ran}')
     eval_callback = EvalCallback(eval_env,  eval_freq=10000,
                                 deterministic=True, n_eval_episodes=50,
                                 callback_after_eval=success_callback)
@@ -242,7 +242,7 @@ def train(threshold_pos=0.001,
         callback = [eval_callback, log_callback1]
     else:
         callback = [eval_callback]
-    model.learn(1_000_000, callback=callback)
+    model.learn(1_500_000, callback=callback)
     # #save model name in log file
     # with open('./logs/model_log.txt', 'w') as f:
     #     f.write(f'{model_name}\n')
